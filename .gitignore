@@ -7,8 +7,11 @@
 .metadata
 bin/
 tmp/
+.svn/
+.svn*
 *.tmp
 *.bak
+
 *.swp
 *~.nib
 local.properties
