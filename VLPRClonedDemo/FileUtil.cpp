@@ -1,4 +1,11 @@
 
+// FileUtil.cpp : 实现文件
+
+/**
+* Auth: Karl
+* Date: 2014/2/20
+* LastUpdate: 2014/2/24
+*/
 
 #include <windows.h>  
 #include <ShlObj.h> 
@@ -255,6 +262,27 @@ void __cdecl debug(const char *format, ...)
 {
 //	return ;
 
+	char buf[4096]={0}, *p=buf;
+	
+	char *t = GetDateTime();
+	sprintf(p,"%s ",t);
+	p += strlen(p);
+
+    va_list args;
+    va_start(args, format);
+    p += _vsnprintf(p, sizeof buf - 1, format, args);
+    va_end(args);
+  // while ( p > buf && isspace(p[-1]) )    *--p = '\0';
+    *p++ = '\r';
+    *p++ = '\n';
+    *p = '\0';
+
+    OutputDebugString(buf);
+}
+
+
+void __cdecl release(const char *format, ...)
+{
 	char buf[4096]={0}, *p=buf;
 	
 	char *t = GetDateTime();

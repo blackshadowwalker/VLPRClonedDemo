@@ -1,4 +1,11 @@
 // public.cpp
+
+/**
+* Auth: Karl
+* Date: 2014/2/20
+* LastUpdate: 2014/2/24
+*/
+
 #pragma once
 
 #include "stdafx.h"

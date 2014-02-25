@@ -18,6 +18,8 @@
 class CVLPRClonedDemoApp : public CWinAppEx
 {
 public:
+	static CString m_appPath;
+
 	CVLPRClonedDemoApp();
 
 // ÖØÐ´

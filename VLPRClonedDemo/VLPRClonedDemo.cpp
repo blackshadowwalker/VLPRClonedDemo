@@ -36,9 +36,22 @@ CVLPRClonedDemoApp theApp;
 
 // CVLPRClonedDemoApp 初始化
 
+CString CVLPRClonedDemoApp::m_appPath="";
 BOOL CVLPRClonedDemoApp::InitInstance()
 {
-		GdiplusStartup(&m_pGdiToken, &m_gdiplusStartupInput, NULL); //初始化GDI+.
+
+	CString g_szOcxPath = this->m_pszHelpFilePath;
+	CString g_szOcxName = this->m_pszExeName;
+
+	g_szOcxName += ".HLP";
+	int nTmp = g_szOcxName.GetLength();
+	nTmp = g_szOcxPath.GetLength() - nTmp;
+	g_szOcxPath = g_szOcxPath.Left(nTmp-1);
+
+	m_appPath = g_szOcxPath;
+
+
+	GdiplusStartup(&m_pGdiToken, &m_gdiplusStartupInput, NULL); //初始化GDI+.
 
 
 	// 如果一个运行在 Windows XP 上的应用程序清单指定要

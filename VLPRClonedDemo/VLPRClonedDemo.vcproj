@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../include"
+				AdditionalIncludeDirectories="../include;sqlite"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -127,7 +127,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../include"
+				AdditionalIncludeDirectories="../include;./sqlite"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
 				MinimalRebuild="false"
 				RuntimeLibrary="2"
@@ -210,6 +210,30 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\LoadingDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LPRDB.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\public.cpp"
 				>
 			</File>
@@ -234,6 +258,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\VideoUtil.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\VLPRClonedDemo.cpp"
 				>
 			</File>
@@ -249,6 +277,18 @@
 			>
 			<File
 				RelativePath=".\FileUtil.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LoadingDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LPR_info.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LPRDB.h"
 				>
 			</File>
 			<File
@@ -269,6 +309,10 @@
 			</File>
 			<File
 				RelativePath="..\include\TH_PlateID.h"
+				>
+			</File>
+			<File
+				RelativePath=".\VideoUtil.h"
 				>
 			</File>
 			<File
@@ -295,6 +339,38 @@
 			</File>
 			<File
 				RelativePath=".\res\VLPRClonedDemo.rc2"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="sqlit"
+			>
+			<File
+				RelativePath=".\sqlite\sqlite3.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\sqlite\sqlite3.h"
+				>
+			</File>
+			<File
+				RelativePath=".\sqlite\sqlite3ext.h"
 				>
 			</File>
 		</Filter>

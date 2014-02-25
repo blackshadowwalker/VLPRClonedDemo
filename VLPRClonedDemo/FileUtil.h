@@ -1,3 +1,11 @@
+// FileUtil.h
+
+/**
+* Auth: Karl
+* Date: 2014/2/20
+* LastUpdate: 2014/2/24
+*/
+
 #pragma once
 
 #ifndef HEADER_FILEUTIL
@@ -34,5 +42,6 @@ private:
 
 char *GetDateTime(char *timeString=0);
 void __cdecl debug(const char *format, ...);
+void __cdecl release(const char *format, ...);
 
 #endif
