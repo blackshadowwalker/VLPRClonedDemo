@@ -76,6 +76,7 @@ END_MESSAGE_MAP()
 
 CVLPRClonedDemoDlg::CVLPRClonedDemoDlg(CWnd* pParent /*=NULL*/)
 : CDialog(CVLPRClonedDemoDlg::IDD, pParent)
+, m_Threshold(60)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
@@ -97,6 +98,7 @@ void CVLPRClonedDemoDlg::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_LIST_DIRS, m_listDirs);
 	DDX_Control(pDX, IDC_LIST, m_list);
+	DDX_Text(pDX, IDC_EDIT_THREAD, m_Threshold);
 }
 
 BEGIN_MESSAGE_MAP(CVLPRClonedDemoDlg, CDialog)
@@ -459,7 +461,7 @@ void ProcessResultThread(void *pParam)
 
 		if(result->time > 0 ){
 
-			if(getClonedLpr(result, dlg->LPRClonedList)==1){
+			if(getClonedLpr(result, dlg->LPRClonedList, dlg->m_Threshold * 60)==1){
 				release("getConedLpr @ 0x%x  %s", result, result->plate);
 				insertLpr(result);
 
@@ -750,6 +752,8 @@ void ListFilesThread(void *pParam)
 
 void CVLPRClonedDemoDlg::OnBnClickedAnay()
 {
+	UpdateData(true);
+
 	//情况之前的图片文件列表
 	while(mListPicturesPath.size() > 0 )
 	{

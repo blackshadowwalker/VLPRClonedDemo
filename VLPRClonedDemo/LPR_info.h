@@ -1,4 +1,4 @@
-//LPR_info.h
+ï»¿//LPR_info.h
 
 #ifndef _LPR_INFO_HEADER_
 #define _LPR_INFO_HEADER_
@@ -21,25 +21,25 @@ static char temp[64]={0};
 typedef struct LPR_Result
 {
 	int id;
-	char plate[32];//³µÅÆ
-	float confidence;//ÖÃĞÅ¶È
-	TF_Rect plateRect;//³µÅÆÇøÓò
-	char  plateType[32];//³µÅÆÀàĞÍ
-//	char  plateColor[32];//³µÅÆÑÕÉ«
+	char plate[32];//è½¦ç‰Œ
+	float confidence;//ç½®ä¿¡åº¦
+	TF_Rect plateRect;//è½¦ç‰ŒåŒºåŸŸ
+	char  plateType[32];//è½¦ç‰Œç±»å‹
+//	char  plateColor[32];//è½¦ç‰Œé¢œè‰²
 	
-	char  carLogo[32];//³µ±ê
-	char  carColor1[32];//³µÁ¾ÑÕÉ«
-	char  carColor2[32];//³µÁ¾´ÎÑÕÉ«
-	char  direct[32];//ÔË¶¯·½Ïò
+	char  carLogo[32];//è½¦æ ‡
+	char  carColor1[32];//è½¦è¾†é¢œè‰²
+	char  carColor2[32];//è½¦è¾†æ¬¡é¢œè‰²
+	char  direct[32];//è¿åŠ¨æ–¹å‘
 
-	unsigned char * pResultBits;//³µÅÆÍ¼Æ¬Êı¾İ
-	char resultPicture[256];//³µÅÆÍ¼Æ¬µØÖ·
+	unsigned char * pResultBits;//è½¦ç‰Œå›¾ç‰‡æ•°æ®
+	char resultPicture[256];//è½¦ç‰Œå›¾ç‰‡åœ°å€
 	int	imageWidth;
 	int imageHeight;
 
-	long  takesTime;//ºÄÊ±
-	char  lastUpdateTime[64];//Ê±¼ä×Ö·û´®
-	long  time;//Ê±¼älong
+	long  takesTime;//è€—æ—¶
+	char  lastUpdateTime[64];//æ—¶é—´å­—ç¬¦ä¸²
+	long  time;//æ—¶é—´long
 	
 	const char *FormatTime(long timeIn=0)
 	{
