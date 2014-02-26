@@ -260,7 +260,7 @@ char *GetDateTime(char *timeString)
 
 void __cdecl debug(const char *format, ...)
 {
-//	return ;
+	return ;
 
 	char buf[4096]={0}, *p=buf;
 	

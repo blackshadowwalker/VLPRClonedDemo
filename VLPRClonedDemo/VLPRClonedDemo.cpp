@@ -39,6 +39,8 @@ CVLPRClonedDemoApp theApp;
 CString CVLPRClonedDemoApp::m_appPath="";
 BOOL CVLPRClonedDemoApp::InitInstance()
 {
+	try
+	{
 
 	CString g_szOcxPath = this->m_pszHelpFilePath;
 	CString g_szOcxName = this->m_pszExeName;
@@ -93,5 +95,10 @@ BOOL CVLPRClonedDemoApp::InitInstance()
 
 	// 由于对话框已关闭，所以将返回 FALSE 以便退出应用程序，
 	//  而不是启动应用程序的消息泵。
+	}
+	catch(...){
+		MessageBox(0, "程序异常，即将退出", "",MB_OK);
+	}
+
 	return FALSE;
 }
