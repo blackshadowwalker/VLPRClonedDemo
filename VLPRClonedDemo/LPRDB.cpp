@@ -69,6 +69,9 @@ sqlite3 *OpenSqlite()
 }
 int close_db(sqlite3  *p=0)
 {
+	return 0;
+
+
 	int ret = 0;
 	if(pSqlite3==p)
 		pSqlite3 = 0;

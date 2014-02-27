@@ -6,7 +6,7 @@
 * Date: 2014/2/20
 * LastUpdate: 2014/2/24
 */
-
+#include "afxwin.h"
 #include <windows.h>  
 #include <ShlObj.h> 
 #include <stdio.h>
@@ -153,14 +153,24 @@ list<char*>* FileUtil::ListFiles(char *czPath, list<char*> &listResult, char *fi
 
 }
 
+int CALLBACK BrowseCallbackProc(HWND hwnd,UINT uMsg,LPARAM lParam,LPARAM lpData)
+{
+    switch(uMsg)
+    {
+    case BFFM_INITIALIZED:
+        ::SendMessage(hwnd,BFFM_SETSELECTION,TRUE,lpData);
+        break;
+    }
 
+    return 0;
+}
 
 
 //选择文件夹 对话框
 #ifndef BIF_NEWDIALOGSTYLE
 #define BIF_NEWDIALOGSTYLE 0x0040
 #endif
-char* FileUtil::SelectFolder(HWND hwnd, char* title)
+char* FileUtil::SelectFolder(HWND hwnd, char* title, char* dir)
 {
 	char *szFolder = new char[MAX_PATH]; //得到文件路径	
 	memset(szFolder, 0, MAX_PATH);
@@ -205,9 +215,16 @@ char* FileUtil::SelectFolder(HWND hwnd, char* title)
 	bi.lpszTitle		= (title); //选择目录对话框的上部分的标题
 	//添加新建文件夹按钮 BIF_NEWDIALOGSTYLE
 	bi.ulFlags			=  BIF_NEWDIALOGSTYLE | BIF_RETURNONLYFSDIRS | BIF_RETURNFSANCESTORS | BIF_EDITBOX;
-	bi.lpfn				= NULL;
-	bi.lParam			= 0;
 	bi.iImage			= 0;
+	if(dir!=0)
+	{
+		bi.lpfn				= BrowseCallbackProc;
+		bi.lParam			= (LPARAM)(LPCTSTR)dir;
+	}else{
+		bi.lpfn				= 0;
+		bi.lParam			= 0;
+	}
+	
 
 	LPITEMIDLIST pidl=(LPITEMIDLIST)CoTaskMemAlloc(sizeof(LPITEMIDLIST));  
 	pidl = SHBrowseForFolder(&bi);  
@@ -245,6 +262,100 @@ BOOL FileUtil::FindFirstFileExists(LPCTSTR lpPath, DWORD dwFilter)
 	FindClose(hFind);  
 	return RetValue;  
 }  
+
+int copyfile(const char *srcFile, const char *dstFile)
+{
+	FILE *fpIn=0, *fpOut=0;
+	fpIn = fopen(srcFile, "rb");
+	fpOut = fopen(dstFile, "wb");
+
+	if(fpIn==0 || fpOut==0){
+		debug("copyfile faile @ src=%s  dest=%s", srcFile, dstFile);
+		fclose(fpIn);
+		fclose(fpOut);
+		return false;
+	}
+	bool ret = true;
+	unsigned char buffer[2]={0};
+	int bufsize = 1;
+	int size=0, size2=0;
+	ret = true;
+	while( !feof(fpIn))
+	{
+		size = fread(buffer, 1, 1, fpIn);
+		size2 =  fwrite(buffer,1, 1, fpOut);
+		//if(size ==0 || size!=size2){
+		//	ret = false;
+		//	break;
+		//}
+	}
+	fclose(fpIn);
+	fclose(fpOut);
+
+	return ret;
+}
+
+//格式化交通图片名称
+char* FileUtil::FormatFileName(const char *srcFilePath, int indexIn, bool fileTime, const char *destDir)
+{
+	char * newName = new char[512];
+	try
+	{
+		long lTime;
+		bool bFailed=false;
+		CTime createtime;
+
+		if(fileTime)
+		{
+			CFileStatus filestatus;
+			CFile::GetStatus(srcFilePath,filestatus); //获取文件信息
+			createtime =filestatus.m_ctime;
+		}else{
+			createtime = CTime::GetCurrentTime();
+		}
+		char szTemp[512]={0};
+		
+		char extName[32]={0};
+		sprintf(extName, "%s", strrchr(srcFilePath, '.'));
+		if(destDir==0)
+			memcpy(szTemp, srcFilePath, strrchr(srcFilePath, '\\')-srcFilePath);
+		else
+			sprintf(szTemp,"%s", destDir);
+again:
+		if(bFailed==false){
+			sprintf(newName, "%s\\%s_location_index=%d%s", szTemp, createtime.Format("%Y%m%d%H%M%S") ,indexIn, extName);
+		}else{
+			lTime = getCurrentTime();
+			sprintf(newName, "%s\\%s_location_index=%d_time=%d%s", szTemp, createtime.Format("%Y%m%d%H%M%S") ,indexIn, lTime, extName);
+		}
+		//CFile::Rename(path, newName);
+		if(destDir==0){
+			if(rename(srcFilePath, newName)==0){
+				debug("newNamed : %s  of  %s", newName, srcFilePath);
+			}
+			else{
+				debug("newName failed : %s  of  %s", newName, srcFilePath);
+				bFailed = true;
+				goto again;
+			}
+		}else{
+			if(copyfile(srcFilePath, newName)){
+				debug("newNamed : %s  of  %s", newName, srcFilePath);
+			}
+			else{
+				debug("newName failed : %s  of  %s", newName, srcFilePath);
+				bFailed = true;
+				goto again;
+			}
+		}
+	}
+	catch( CFileException* e ){
+		printf( "ERROR: %d File", e->m_cause);  
+		delete newName;
+		return 0;
+	}
+	return newName;
+}
 
 char *GetDateTime(char *timeString)
 {
@@ -299,4 +410,28 @@ void __cdecl release(const char *format, ...)
     *p = '\0';
 
     OutputDebugString(buf);
+}
+
+
+#include "time.h"
+long getCurrentTime()    
+{    
+	SYSTEMTIME st;
+	//GetSystemTime(&currentTime);
+	GetLocalTime(&st);
+
+   tm temptm = {st.wSecond, 
+                     st.wMinute, 
+                     st.wHour, 
+                     st.wDay, 
+                     st.wMonth - 1, 
+                     st.wYear - 1900, 
+                     st.wDayOfWeek, 
+                     0, 
+                     0};
+
+	return mktime(&temptm)*1000 + st.wMilliseconds;
+   //struct timeval tv;    
+   //gettimeofday(&tv,NULL);    
+   //return tv.tv_sec * 1000 + tv.tv_usec / 1000;    
 }

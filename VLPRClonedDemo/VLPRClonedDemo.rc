@@ -94,21 +94,27 @@ EXSTYLE WS_EX_ACCEPTFILES | WS_EX_APPWINDOW
 CAPTION "信帧套牌识别"
 FONT 9, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    PUSHBUTTON      "添加目录",BT_ADD_BROWSER,12,218,50,20
-    PUSHBUTTON      "清空",BT_DIRS_CLEAR,182,219,50,20
+    PUSHBUTTON      "添加目录",BT_ADD_BROWSER,15,223,50,20
+    PUSHBUTTON      "清空",BT_DIRS_CLEAR,216,223,50,20
     GROUPBOX        "套牌识别输入",IDC_STATIC,7,200,270,188
-    LISTBOX         IDC_LIST_DIRS,9,255,264,119,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "分析",BT_ANAY,96,219,50,20
-    LTEXT           "...",ID_PROCESS_STATUS,7,374,139,8
+    LISTBOX         IDC_LIST_DIRS,9,255,264,106,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "分析",BT_ANAY,82,223,50,20,WS_DISABLED
+    LTEXT           "...",ID_PROCESS_STATUS,294,364,285,8
     CONTROL         "",ID_VIDEO_WALL,"Static",SS_BLACKRECT,7,7,270,191
     CONTROL         "",ID_LPR_PICTURE,"Static",SS_BLACKRECT,427,206,153,46
-    LTEXT           "...",ID_STATUS,154,375,118,8
-    CONTROL         "",IDC_LIST,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,292,254,288,124
+    LTEXT           "...",ID_STATUS,9,375,262,8
+    CONTROL         "",IDC_LIST,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,292,254,288,108
     GROUPBOX        "套牌车辆",IDC_STATIC,288,200,294,187
     CONTROL         "",ID_PICTURE,"Static",SS_BLACKRECT,289,7,291,192
-    LTEXT           "时间阈值:",IDC_STATIC,296,226,31,8
-    EDITTEXT        IDC_EDIT_THREAD,329,222,40,14,ES_AUTOHSCROLL
-    LTEXT           "(分钟)",IDC_STATIC,371,225,20,8
+    LTEXT           "时间阈值:",IDC_STATIC,296,217,31,8
+    EDITTEXT        IDC_EDIT_THREAD,329,213,72,14,ES_AUTOHSCROLL
+    LTEXT           "(分钟)",IDC_STATIC,403,217,20,8
+    LTEXT           "输出目录:",IDC_STATIC,295,236,31,8
+    PUSHBUTTON      "...",BT_BROWSER_DEST_DIR,405,233,17,14
+    EDITTEXT        IDC_EDIT_DST_DIR,329,233,73,14,ES_AUTOHSCROLL | WS_DISABLED
+    PUSHBUTTON      "重现加载",BT_RE_LOAD,149,223,50,20
+    LTEXT           "...",ID_STATUS_LIST,9,363,262,8
+    LTEXT           "...",BT_RESULT_STATUS,294,375,205,8
 END
 
 IDD_DIALOG_LOADING DIALOGEX 0, 0, 251, 46
@@ -141,14 +147,14 @@ BEGIN
     BEGIN
         BLOCK "080403a8"
         BEGIN
-            VALUE "CompanyName", "TODO: <公司名>"
-            VALUE "FileDescription", "TODO: <文件说明>"
+            VALUE "CompanyName", "Teleframe"
+            VALUE "FileDescription", "信帧套牌车识别"
             VALUE "FileVersion", "1.0.0.1"
             VALUE "InternalName", "VLPRClonedDemo.exe"
-            VALUE "LegalCopyright", "TODO: (C) <公司名>。保留所有权利。"
+            VALUE "LegalCopyright", "(C)Teleframe  保留所有权利。"
             VALUE "OriginalFilename", "VLPRClonedDemo.exe"
-            VALUE "ProductName", "TODO: <产品名>"
-            VALUE "ProductVersion", "1.0.0.1"
+            VALUE "ProductName", "信帧套牌车识别"
+            VALUE "ProductVersion", "1.1.0.1"
         END
     END
     BLOCK "VarFileInfo"

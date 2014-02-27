@@ -28,7 +28,9 @@ HANDLE handleVideoThread=0;
 HANDLE handleVideoThreadStoped=0;
 HANDLE handleLPRThreadStoped=0;
 HANDLE hShowVideoFrame=0;
-HANDLE hShowFrameAccess=0;
+HANDLE hLoadedFilesName=0;
+
+void LoadFileThread(void *pParam);
 
 //====================================================================
 
@@ -76,6 +78,7 @@ END_MESSAGE_MAP()
 CVLPRClonedDemoDlg::CVLPRClonedDemoDlg(CWnd* pParent /*=NULL*/)
 : CDialog(CVLPRClonedDemoDlg::IDD, pParent)
 , m_Threshold(60)
+, m_dstDir(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
@@ -83,12 +86,14 @@ CVLPRClonedDemoDlg::CVLPRClonedDemoDlg(CWnd* pParent /*=NULL*/)
 	imageDataForShow = 0;
 	imageDataForShowSize = 0;
 
+	loadFomatedFile = false;
+
 	handleExit = CreateEvent(NULL, FALSE, FALSE, NULL);
 	handleVideoThread = CreateEvent(NULL, FALSE, FALSE, NULL);
 	handleVideoThreadStoped = CreateEvent(NULL, FALSE, FALSE, NULL);
 	hShowVideoFrame  = CreateEvent(NULL, FALSE, FALSE, NULL);
 	handleLPRThreadStoped = CreateEvent(NULL, FALSE, FALSE, NULL);
-	hShowFrameAccess  = CreateEvent(NULL, FALSE, FALSE, NULL);
+	hLoadedFilesName  = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 }
 
@@ -98,6 +103,7 @@ void CVLPRClonedDemoDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LIST_DIRS, m_listDirs);
 	DDX_Control(pDX, IDC_LIST, m_list);
 	DDX_Text(pDX, IDC_EDIT_THREAD, m_Threshold);
+	DDX_Text(pDX, IDC_EDIT_DST_DIR, m_dstDir);
 }
 
 BEGIN_MESSAGE_MAP(CVLPRClonedDemoDlg, CDialog)
@@ -113,6 +119,8 @@ BEGIN_MESSAGE_MAP(CVLPRClonedDemoDlg, CDialog)
 	ON_NOTIFY(NM_CLICK, IDC_LIST, &CVLPRClonedDemoDlg::OnNMClickList)
 	ON_WM_MOUSEMOVE()
 	ON_WM_CLOSE()
+	ON_BN_CLICKED(BT_BROWSER_DEST_DIR, &CVLPRClonedDemoDlg::OnBnClickedBrowserDestDir)
+	ON_BN_CLICKED(BT_RE_LOAD, &CVLPRClonedDemoDlg::OnBnClickedReLoad)
 END_MESSAGE_MAP()
 
 
@@ -147,6 +155,7 @@ BOOL CVLPRClonedDemoDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
+	ReadConfig();
 
 	DWORD dwStyle = m_list.GetExtendedStyle();
 	dwStyle |= LVS_EX_FULLROWSELECT;//选中某行使整行高亮（只适用与report风格的listctrl）
@@ -163,6 +172,7 @@ BOOL CVLPRClonedDemoDlg::OnInitDialog()
 	m_list.InsertColumn( cols++, "图片2", LVCFMT_LEFT, 50 );
 	m_list.InsertColumn( cols++, "ID1", LVCFMT_LEFT, 30 );
 	m_list.InsertColumn( cols++, "ID2", LVCFMT_LEFT, 30 );
+
 
 	startThreads();
 
@@ -240,6 +250,9 @@ void CVLPRClonedDemoDlg::OnDropFiles(HDROP hDropInfo)
 		}
 	}
 	DragFinish(hDropInfo);
+	
+	_beginthread(LoadFileThread, 0 ,this);//加载文件
+
 	CDialog::OnDropFiles(hDropInfo);
 }
 
@@ -261,6 +274,9 @@ void CVLPRClonedDemoDlg::OnBnClickedAddBrowser()
 	if( bSame==false && FileUtil::FindFirstFileExists(path, FILE_ATTRIBUTE_DIRECTORY)){
 		m_listDirs.AddString(path);
 	}
+
+	_beginthread(LoadFileThread, 0 ,this);//加载文件
+
 	UpdateData(false);
 }
 
@@ -268,6 +284,14 @@ void CVLPRClonedDemoDlg::OnBnClickedDirsClear()
 {
 	m_listDirs.ResetContent();
 	m_list.DeleteAllItems();
+
+	//清空图片文件列表
+	while(WaitForSingleObject(handleExit,0)!=WAIT_OBJECT_0 && mListPicturesPath.size() > 0 )
+	{
+		char *p = mListPicturesPath.front();
+		mListPicturesPath.pop_front();
+		delete p;
+	}
 }
 
 
@@ -427,14 +451,17 @@ void ProcessResultThread(void *pParam)
 		debug("ProcessResultThread 启动  handle=0x%x", handleCanExit);
 
 		while(WaitForSingleObject(handleExit,0)!=WAIT_OBJECT_0){
-			if(dlg->LPRQueueResult.size()<1){
-				Sleep(10);		
+			if(dlg->LPRQueueResult.empty()){
+				Sleep(100);		
 				continue;
 			}
 			LPR_Result *result = dlg->LPRQueueResult.front();
 			dlg->LPRQueueResult.pop();
 			if(result==0)
 				continue;
+
+			sprintf(temp, "第四步:处理结果,还剩: %d", dlg->LPRQueueResult.size());
+			dlg->GetDlgItem(BT_RESULT_STATUS)->SetWindowText(temp);
 
 			release("ProcessResultThread Frame=%d  Plate=%s  (%d,%d)-(%d,%d)", dlg->nFrames, result->plate, \
 				result->plateRect.left, result->plateRect.top,
@@ -529,7 +556,6 @@ void PlayThread(void *pParam)
 {
 	try
 	{
-
 		CVLPRClonedDemoDlg *dlg = (CVLPRClonedDemoDlg*)pParam;
 		HANDLE handleCanExit = dlg->ReginsterMyThread("PlayThread");
 		release("PlayThread 启动  handle=0x%x", handleCanExit);
@@ -537,7 +563,7 @@ void PlayThread(void *pParam)
 		while(WaitForSingleObject(handleExit,0)!=WAIT_OBJECT_0){
 			if(WaitForSingleObject(hShowVideoFrame,0)==0)
 			{
-				if(dlg->imagesQueuePlay.size() > 0){
+				if(dlg->imagesQueuePlay.empty()==false){
 					LPR_Image* pLpr = dlg->imagesQueuePlay.front();
 					debug("PlayThread imagesQueuePlay.front  0x%x  imagesQueuePlaySize = %d", pLpr->buffer,  dlg->imagesQueuePlay.size());
 					dlg->imagesQueuePlay.pop();
@@ -552,7 +578,7 @@ void PlayThread(void *pParam)
 					delete lpr->buffer;
 					delete lpr;
 				}
-				Sleep(100);
+				Sleep(10);
 			}
 		}
 		release("PlayThread 正常退出");
@@ -585,22 +611,26 @@ void RecognitionThread(void *pParam)
 		SetEvent(handleLPRThreadStoped);
 		while(WaitForSingleObject(handleExit,0)!=WAIT_OBJECT_0){
 
-			if(dlg->imagesQueue.size()<1){
+			if(dlg->imagesQueue.empty()){
 				SetEvent(handleLPRThreadStoped);
-				Sleep(10);		
+				Sleep(100);		
 				continue;
 			}
+	
+			if(dlg->LPRQueueResult.size()>100){
+				Sleep(2*1000);
+				continue;
+			}
+
 			ResetEvent(handleLPRThreadStoped);
 
-			if(dlg->imagesQueue.size()>0)
+			if(dlg->imagesQueue.empty()==false)
 			{
-				if(dlg->imagesQueue.size()<1){
-					continue;
-				}
-				
 				dlg->nFrames ++;
 				release("nFrames ++ = %d ", dlg->nFrames);
 
+				if(dlg->imagesQueue.empty())
+					continue;
 				pLprImage = dlg->imagesQueue.front();
 				dlg->imagesQueue.pop();
 				if(pLprImage==0)
@@ -641,6 +671,7 @@ void RecognitionThread(void *pParam)
 						debug("未识别 ret = %d", ret);
 						ret = -1;
 					}else{
+						
 						ret = 1;
 						LPR_Result *r = new LPR_Result();
 						r->takesTime = t2-t1;
@@ -675,7 +706,8 @@ void RecognitionThread(void *pParam)
 				sprintf(temp, "Rate:%d fps", dlg->nFrames*1000/(dlg->timeNow - dlg->timeStart));
 				debug("RecognitionThread %s",temp );
 
-				sprintf(temp, "文件总量: %d, 已处理: %0.3g %% ( %d/ %d)", filesCount, dlg->nFrames*1.0/filesCount *100, dlg->nFrames, filesCount);
+				sprintf(temp, "第三步:分析图片识别套牌,文件总量: %d,已处理: %0.3g %%(%d/%d) QSize=%d", 
+								filesCount, dlg->nFrames*1.0/filesCount *100, dlg->nFrames, filesCount, dlg->imagesQueue.size());
 				dlg->GetDlgItem(ID_PROCESS_STATUS)->SetWindowText(temp);
 
 				//Sleep(100);
@@ -730,83 +762,203 @@ unsigned char* GetImageDataByPath(const char *pathIn, int *width, int *height, R
 
 void CVLPRClonedDemoDlg::LoadImageFromPath(char * path)
 {
-	Bitmap* image = 0;
-	image = KLoadBitmap( path );
-	//	DrawImg2Hdc(image, ID_VIDEO_WALL, this);
-	if(image==0)
-		return ;
+	try{
+		Bitmap* image = 0;
+		image = KLoadBitmap( path );
+		//	DrawImg2Hdc(image, ID_VIDEO_WALL, this);
+		if(image==0)
+			return ;
 
-	LPR_Image *pLpr = new LPR_Image();
-	sprintf(pLpr->filePath,"%s", path );
-	pLpr->imageWidth = image->GetWidth();
-	pLpr->imageHeight = image->GetHeight();
-	pLpr->imageSize = pLpr->imageWidth * pLpr->imageHeight * 3;
-	pLpr->buffer = new unsigned char[pLpr->imageSize];
+		LPR_Image *pLpr = new LPR_Image();
+		sprintf(pLpr->filePath,"%s", path );
+		pLpr->imageWidth = image->GetWidth();
+		pLpr->imageHeight = image->GetHeight();
+		pLpr->imageSize = pLpr->imageWidth * pLpr->imageHeight * 3;
+		pLpr->buffer = new unsigned char[pLpr->imageSize];
 
-	long BufferLen;
-	BufferLen= pLpr->imageSize;
+		long BufferLen;
+		BufferLen= pLpr->imageSize;
 
-	BitmapData bitmapData={0};
-	bitmapData.Stride = WIDTHSTEP(pLpr->imageWidth);
-	bitmapData.Scan0 = new BYTE[bitmapData.Stride * pLpr->imageHeight];
+		BitmapData bitmapData={0};
+		bitmapData.Stride = WIDTHSTEP(pLpr->imageWidth);
+		bitmapData.Scan0 = new BYTE[bitmapData.Stride * pLpr->imageHeight];
 
-	Rect rect(0,0, pLpr->imageWidth, pLpr->imageHeight);
-	image->LockBits(&rect, ImageLockModeRead | ImageLockModeUserInputBuf, PixelFormat24bppRGB, &bitmapData); 
+		Rect rect(0,0, pLpr->imageWidth, pLpr->imageHeight);
+		image->LockBits(&rect, ImageLockModeRead | ImageLockModeUserInputBuf, PixelFormat24bppRGB, &bitmapData); 
 
-	memcpy(pLpr->buffer, (BYTE*)bitmapData.Scan0, BufferLen); 
+		memcpy(pLpr->buffer, (BYTE*)bitmapData.Scan0, BufferLen); 
 
-	delete bitmapData.Scan0;
-	image->UnlockBits( &bitmapData);
+		delete bitmapData.Scan0;
+		image->UnlockBits( &bitmapData);
 
-	debug("LPRFromImage imagesQueue.size = %d", imagesQueue.size());
+		debug("LPRFromImage imagesQueue.size = %d", imagesQueue.size());
 
-	delete image;
+		delete image;
 
-	imagesQueue.push(pLpr);//放入队列进行处理
+		imagesQueue.push(pLpr);//放入队列进行处理
+
+	}catch(...){
+		release("dlg->LoadImageFromPath(%s) ERROR", path);
+	}
 }
 
-void PictureThread(void *pParam)
+
+int curLoadPictureIndex=0;
+//加载图片到内存
+void LoadPictureThread(void *pParam)
 {
 	try
 	{
 		CVLPRClonedDemoDlg *dlg = (CVLPRClonedDemoDlg*)pParam;
-		HANDLE handleCanExit = dlg->ReginsterMyThread("PictureThread");
-		debug("PictureThread 启动  handle=0x%x", handleCanExit);
+		HANDLE handleCanExit = dlg->ReginsterMyThread("LoadPictureThread");
+		release("LoadPictureThread 启动  handle=0x%x", handleCanExit);
 
 		char temp[512]={0};
-		curFileIndex = 0;
+		curLoadPictureIndex = 0;
 
-		while(WaitForSingleObject(handleExit,0)!=WAIT_OBJECT_0  && dlg->mListPicturesPath.size() > 0)
+		while(WaitForSingleObject(handleExit,0)!=WAIT_OBJECT_0)
 		{
-			curFileIndex ++;
-			char *path = dlg->mListPicturesPath.front();
-			dlg->mListPicturesPath.pop_front();
+			if(dlg->mListLPRPictures.empty()){
+				Sleep(100);
+				continue;
+			}
+			if(dlg->imagesQueue.size() > 20){
+				Sleep(100);
+				continue;
+			}
+
+			curLoadPictureIndex ++;
+			char *path = dlg->mListLPRPictures.front();
+			dlg->mListLPRPictures.pop_front();
 			if(path!=0)
 			{
-				//	debug("path=%s",path);
+				
 				dlg->LoadImageFromPath(path);
 				delete path;
-
-				sprintf(temp, "文件总量: %d, 已加载: %3g %% ", filesCount, curFileIndex*1.0/filesCount *100 );
+				sprintf(temp, "第二步:加载图片到内存, 文件总量: %d, 已加载: %0.3g %%@%d", filesCount, curLoadPictureIndex*1.0/filesCount *100,curLoadPictureIndex );
 				dlg->GetDlgItem(ID_STATUS)->SetWindowText(temp);
 			}
 		}
 
 	end:
+	//	MessageBox(0, "LoadPictureThread 正常退出", "", 0);
 		dlg->GetDlgItem(BT_ANAY)->EnableWindow(true);
-		debug("PictureThread 正常退出");
+		debug("LoadPictureThread 正常退出");
 		SetEvent(handleCanExit);//设置可以退出了
 
 	}
 	catch(...)
 	{
-		release("RecognitionThread Error");
+		MessageBox(0, "加载图片到内存 Error", "", 0);
+		release("LoadPictureThread Error");
 		//	MessageBox(0, "RecognitionThread Error", "", MB_OK);
 	}
 }
 
-void ListFilesThread(void *pParam)
+
+void LoadFileThread(void *pParam)
 {
+	ResetEvent(hLoadedFilesName);
+
+	CVLPRClonedDemoDlg *dlg = (CVLPRClonedDemoDlg*)pParam;
+	HANDLE handleCanExit = dlg->ReginsterMyThread("LoadFileThread");
+	release("LoadFileThread 启动  handle=0x%x", handleCanExit);
+
+	char temp[512]={0};
+	//清空之前的图片文件列表
+	while(WaitForSingleObject(handleExit,0)!=WAIT_OBJECT_0 && dlg->mListPicturesPath.size() > 0 )
+	{
+		char *p = dlg->mListPicturesPath.front();
+		dlg->mListPicturesPath.pop_front();
+		delete p;
+	}
+	debug("清空之前的图片文件列表  mListPicturesPath.size=%d ",dlg->mListPicturesPath.size());
+
+	dlg->GetDlgItem(ID_STATUS)->SetWindowText("正在加载文件列表... ");
+	if(dlg->loadFomatedFile){
+		FileUtil::ListFiles(dlg->m_dstDir.GetBuffer(dlg->m_dstDir.GetLength()), dlg->mListPicturesPath, "*.jpg", true);
+		FileUtil::ListFiles(dlg->m_dstDir.GetBuffer(dlg->m_dstDir.GetLength()), dlg->mListPicturesPath, "*.bmp", true);
+		FileUtil::ListFiles(dlg->m_dstDir.GetBuffer(dlg->m_dstDir.GetLength()), dlg->mListPicturesPath, "*.png", true);
+	}else{
+		CString path;
+		for(int i=0; i<dlg->m_listDirs.GetCount(); i++){
+			dlg->m_listDirs.GetText(i, path);
+			FileUtil::ListFiles(path.GetBuffer(path.GetLength()), dlg->mListPicturesPath, "*.jpg", true);
+			FileUtil::ListFiles(path.GetBuffer(path.GetLength()), dlg->mListPicturesPath, "*.bmp", true);
+			FileUtil::ListFiles(path.GetBuffer(path.GetLength()), dlg->mListPicturesPath, "*.png", true);
+
+			sprintf(temp, "正在加载文件列表: %3g %% , 文件总量: %d ", (i+1)*1.0/dlg->m_listDirs.GetCount() *100, dlg->mListPicturesPath.size());
+			debug("%s  %s", temp, path );
+			dlg->GetDlgItem(ID_STATUS)->SetWindowText(temp);
+		}
+	}
+	dlg->GetDlgItem(ID_STATUS)->SetWindowText("加载文件列表完成");
+	if( dlg->mListPicturesPath.size()>0)
+		dlg->GetDlgItem(BT_ANAY)->EnableWindow(true);
+	else
+		dlg->GetDlgItem(BT_ANAY)->EnableWindow(false);
+end:
+	release("LoadFileThread 正常退出");
+	SetEvent(handleCanExit);//设置可以退出了
+
+	SetEvent(hLoadedFilesName);
+
+}
+
+//格式化文件名称
+void FormatFileNameThread(void *pParam)
+{
+	CVLPRClonedDemoDlg *dlg = (CVLPRClonedDemoDlg*)pParam;
+	HANDLE handleCanExit = dlg->ReginsterMyThread("FormatFileNameThread");
+	release("FormatFileNameThread 启动  handle=0x%x", handleCanExit);
+
+	char temp[512]={0};
+	
+	int curFormatFileIndex = 0;
+	filesCount = dlg->mListPicturesPath.size();
+	int failedCount = 0;
+
+	curLoadPictureIndex = 0;
+	bool fileTime = true;// ((CButton *)dlg->GetDlgItem(IDC_RADIO1))->GetCheck();
+
+	char *dstDir = 0; 
+	if(dlg->m_dstDir.IsEmpty()==false)
+	{
+		dstDir = new char[512];
+		sprintf(dstDir, "%s", dlg->m_dstDir.GetBuffer(dlg->m_dstDir.GetLength()));
+	}
+	char *destFilePath = 0;
+	while(WaitForSingleObject(handleExit,0)!=WAIT_OBJECT_0  && dlg->mListPicturesPath.size() > 0)
+	{
+		if(dlg->mListLPRPictures.size()>100){
+			Sleep(100);
+			continue;
+		}
+		curFormatFileIndex ++;
+		char *path = dlg->mListPicturesPath.front();
+		dlg->mListPicturesPath.pop_front();
+		if(path!=0)
+		{
+			destFilePath = FileUtil::FormatFileName(path, curFormatFileIndex, fileTime, dstDir );
+			if(destFilePath)
+			{
+				dlg->mListLPRPictures.push_back(destFilePath);
+			}else
+				failedCount ++;
+
+			delete path;
+			
+			sprintf(temp, "第一步:格式化文件, 文件总量: %d, 已处理: %0.3g %%@%d, 处理失败:%d ", filesCount, curFormatFileIndex*1.0/filesCount *100,  
+											curFormatFileIndex, failedCount);
+			dlg->GetDlgItem(ID_STATUS_LIST)->SetWindowText(temp);
+			//Sleep(100);
+		}
+	}
+	if(dstDir)
+		delete dstDir;
+end:
+	release("FormatFileNameThread 正常退出");
+	SetEvent(handleCanExit);//设置可以退出了
 
 }
 
@@ -814,28 +966,27 @@ void CVLPRClonedDemoDlg::OnBnClickedAnay()
 {
 	UpdateData(true);
 
-	//情况之前的图片文件列表
-	while(mListPicturesPath.size() > 0 )
+	if(m_dstDir.IsEmpty())
 	{
-		char *p = mListPicturesPath.front();
-		mListPicturesPath.pop_front();
-		delete p;
+		MessageBox("请设置输出目录!");
+	//	OnBnClickedBrowserDestDir();
+		return ;
 	}
-	CString path;
-	for(int i=0; i<m_listDirs.GetCount(); i++){
-		m_listDirs.GetText(i, path);
-		FileUtil::ListFiles(path.GetBuffer(path.GetLength()), mListPicturesPath, "*.jpg", true);
-		FileUtil::ListFiles(path.GetBuffer(path.GetLength()), mListPicturesPath, "*.bmp", true);
-		FileUtil::ListFiles(path.GetBuffer(path.GetLength()), mListPicturesPath, "*.png", true);
+
+	//FileUtil::RemoveDir(m_dstDir.GetBuffer(m_dstDir.GetLength()));
+	FileUtil::CreateFolders(m_dstDir.GetBuffer(m_dstDir.GetLength()));
+
+	if( mListPicturesPath.size()<1)
+	{
+		GetDlgItem(BT_ANAY)->EnableWindow(false);
+		MessageBox("请添加目录或重新加载","",0);
+		return ;
 	}
-	filesCount = mListPicturesPath.size();
-	curFileIndex = 0;
-	path.Format("文件总量: %d,已处理: %3d %%   %d/ %d", filesCount, curFileIndex*1.0/filesCount*100, curFileIndex, filesCount);
-	GetDlgItem(ID_PROCESS_STATUS)->SetWindowText(path);
 
 	nFrames = 0;
 	if(TH_InitDll(0)){
-		_beginthread(PictureThread, 0 ,this);
+		_beginthread(FormatFileNameThread, 0 ,this);//格式化图片名称
+
 		GetDlgItem(BT_ANAY)->EnableWindow(false);
 	}
 }
@@ -855,9 +1006,10 @@ HANDLE CVLPRClonedDemoDlg::ReginsterMyThread(char *name)
 }
 void CVLPRClonedDemoDlg::startThreads()
 {
-	_beginthread(RecognitionThread, 0 ,this);
-	_beginthread(PlayThread, 0 ,this);
-	_beginthread(ProcessResultThread, 0 ,this);
+	_beginthread(RecognitionThread, 0, this);//识别线程
+	_beginthread(PlayThread, 0, this);//播放线程
+	_beginthread(ProcessResultThread, 0, this);//处理结果线程
+	_beginthread(LoadPictureThread, 0, this);//加载图片到内存线程
 
 }
 void CVLPRClonedDemoDlg::OnLbnDblclkListDirs()
@@ -998,7 +1150,7 @@ int CVLPRClonedDemoDlg::CloseThread()
 	try
 	{
 		int times=0;
-		while(EventList.size()>0 && times<100)
+		while(EventList.size()>0 && times<10)
 		{
 			times ++;
 			for(list<HANDLE>::iterator it = EventList.begin(); it != EventList.end();)
@@ -1037,6 +1189,7 @@ int CVLPRClonedDemoDlg::CloseThread()
 
 void CVLPRClonedDemoDlg::OnClose()
 {
+	SaveConfig();
 	_beginthread(LoadingThread, 0, this);
 
 	//停止
@@ -1048,4 +1201,61 @@ void CVLPRClonedDemoDlg::OnClose()
 	Sleep(10);
 
 	CDialog::OnClose();
+}
+
+void CVLPRClonedDemoDlg::OnBnClickedBrowserDestDir()
+{
+	UpdateData(true);
+
+	char *tempdir = 0;
+	
+	if(m_dstDir.IsEmpty()==false)
+	{
+		tempdir = new char [256];
+		sprintf(tempdir, m_dstDir.GetBuffer(m_dstDir.GetLength()));
+	}
+	char *path = FileUtil::SelectFolder(this->m_hWnd, "选择输出文件夹", tempdir);
+	m_dstDir.Format( path );
+
+	UpdateData(false);
+}
+
+
+bool CVLPRClonedDemoDlg::ReadConfig()
+{
+	bool ret = 0;
+	char lpFileName[512]={0};
+	char temp[512]={0};
+	sprintf(lpFileName,"%s\\VLPRClonedDemo.ini", CVLPRClonedDemoApp::m_appPath);
+
+	ret = GetPrivateProfileString("config","dstdir", "", temp, 512, lpFileName);
+	m_dstDir.Format( temp );
+	m_Threshold = GetPrivateProfileInt("config","timeThreshold", 60, lpFileName);
+
+	UpdateData(false);
+	return ret;
+
+}
+
+bool CVLPRClonedDemoDlg::SaveConfig()
+{
+	UpdateData(true);
+
+	bool ret=0;
+	char lpFileName[512]={0};
+	char retString[512]={0};
+	char temp[256]={0};
+	sprintf(lpFileName,"%s\\VLPRClonedDemo.ini", CVLPRClonedDemoApp::m_appPath);
+	
+	if(m_dstDir.GetLength()>3)
+		ret =WritePrivateProfileString("config","dstdir", m_dstDir, lpFileName);	
+	sprintf(temp, "%d", m_Threshold);
+	ret =WritePrivateProfileString("config","timeThreshold", temp, lpFileName);	
+
+	return ret;
+}
+void CVLPRClonedDemoDlg::OnBnClickedReLoad()
+{
+	_beginthread(LoadFileThread, 0 ,this);//加载文件
+
 }

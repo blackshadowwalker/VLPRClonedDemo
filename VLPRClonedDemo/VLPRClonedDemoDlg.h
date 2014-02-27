@@ -38,7 +38,7 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 
-	
+
 // 实现
 protected:
 	HICON m_hIcon;
@@ -60,6 +60,7 @@ public:
 	TH_PlateIDCfg plateConfigTh;
 
 	list<char *> mListPicturesPath;
+	list<char *> mListLPRPictures;
 	bool TH_InitDll(int bMovingImage);
 	char pLocalChinese[3];    //本地汉字字符，如果此字符设置为空或者31个省份之外的字，则不使用首汉字
 
@@ -90,4 +91,12 @@ public:
 	int m_Threshold;
 
 	long  nFrames;
+	CString m_dstDir;
+	afx_msg void OnBnClickedBrowserDestDir();
+
+	bool loadFomatedFile;
+
+	bool ReadConfig();
+	bool SaveConfig();
+	afx_msg void OnBnClickedReLoad();
 };

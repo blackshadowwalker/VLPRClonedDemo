@@ -18,8 +18,12 @@
 #define ID_LPR_PICTURE                  1009
 #define IDC_LIST                        1010
 #define ID_PICTURE                      1011
-#define IDC_EDIT1                       1012
 #define IDC_EDIT_THREAD                 1012
+#define BT_BROWSER_DEST_DIR             1013
+#define IDC_EDIT_DST_DIR                1014
+#define BT_RE_LOAD                      1015
+#define ID_STATUS_LIST                  1016
+#define BT_RESULT_STATUS                1017
 
 // Next default values for new objects
 // 
@@ -27,7 +31,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1013
+#define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

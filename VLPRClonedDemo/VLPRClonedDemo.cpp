@@ -37,6 +37,8 @@ CVLPRClonedDemoApp theApp;
 // CVLPRClonedDemoApp ³õÊ¼»¯
 
 CString CVLPRClonedDemoApp::m_appPath="";
+CString CVLPRClonedDemoApp::m_ProfileName="";
+
 BOOL CVLPRClonedDemoApp::InitInstance()
 {
 	try
@@ -44,6 +46,7 @@ BOOL CVLPRClonedDemoApp::InitInstance()
 
 	CString g_szOcxPath = this->m_pszHelpFilePath;
 	CString g_szOcxName = this->m_pszExeName;
+	m_ProfileName = this->m_pszProfileName;
 
 	g_szOcxName += ".HLP";
 	int nTmp = g_szOcxName.GetLength();
