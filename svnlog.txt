@@ -1,10 +1,109 @@
+Revision: 17
+Author: karl.li
+Date: 2014å¹´3æœˆ11æ—¥ 12:27:39
+Message:
+åŠ å…¥CPUå’Œå†…å­˜å®æ—¶ç›‘æµ‹
+----
+Added : /VLPRClonedDemo/ProcessState.cpp
+Added : /VLPRClonedDemo/ProcessState.h
+Modified : /VLPRClonedDemo/VLPRClonedDemo.aps
+Modified : /VLPRClonedDemo/VLPRClonedDemo.rc
+Modified : /VLPRClonedDemo/VLPRClonedDemo.vcproj
+Modified : /VLPRClonedDemo/VLPRClonedDemoDlg.cpp
+Modified : /VLPRClonedDemo/resource.h
 
+Revision: 16
+Author: karl.li
+Date: 2014å¹´3æœˆ11æ—¥ 11:01:05
+Message:
+
+----
+Added : /VLPRClonedDemo/Debug
+Modified : /VLPRClonedDemo/LPRDB.cpp
+Modified : /VLPRClonedDemo/LPRDB.h
+Modified : /VLPRClonedDemo/LPR_info.h
+Added : /VLPRClonedDemo/Release
+Added : /VLPRClonedDemo/TCode.cpp
+Added : /VLPRClonedDemo/TCode.h
+Modified : /VLPRClonedDemo/VLPRClonedDemo.aps
+Modified : /VLPRClonedDemo/VLPRClonedDemo.rc
+Added : /VLPRClonedDemo/VLPRClonedDemo.vcproj.teleframe-PC.teleframe.user
+Modified : /VLPRClonedDemo/VLPRClonedDemoDlg.cpp
+Modified : /VLPRClonedDemo/VLPRClonedDemoDlg.h
+Modified : /VLPRClonedDemo/resource.h
+
+Revision: 15
+Author: karl.li
+Date: 2014å¹´3æœˆ3æ—¥ 16:19:45
+Message:
+Releaseç‰ˆæœ¬ç®—æ³•æœ‰æ—¶å€™ä¼šå´©æºƒ
+Debugç‰ˆæœ¬æ²¡é—®é¢˜ï¼Œç°åœ¨Releaseå’ŒDebugéƒ½ä¿®æ”¹æˆäº†é™æ€è¿æ¥
+----
+Modified : /Release/VLPRClonedDemo.exe
+Modified : /Release/vlprClone.db
+Modified : /VLPRClonedDemo/FileUtil.cpp
+Modified : /VLPRClonedDemo/LPRDB.cpp
+Modified : /VLPRClonedDemo/LoadingDlg.cpp
+Modified : /VLPRClonedDemo/LoadingDlg.h
+Modified : /VLPRClonedDemo/VLPRClonedDemo.aps
+Modified : /VLPRClonedDemo/VLPRClonedDemo.rc
+Modified : /VLPRClonedDemo/VLPRClonedDemo.vcproj
+Modified : /VLPRClonedDemo/VLPRClonedDemoDlg.cpp
+Modified : /VLPRClonedDemo/VLPRClonedDemoDlg.h
+Modified : /VLPRClonedDemo/resource.h
+
+Revision: 14
+Author: karl.li
+Date: 2014å¹´3æœˆ3æ—¥ 9:43:18
+Message:
+åŠ å…¥doc
+----
+Modified : /Release/VLPRClonedDemo.exe
+Modified : /Release/vlprClone.db
+Modified : /VLPRClonedDemo/FileUtil.cpp
+Modified : /VLPRClonedDemo/VLPRClonedDemo.vcproj
+Added : /doc
+Added : /doc/ä¿¡å¸§æ™ºèƒ½äº¤é€šå¥—ç‰Œè½¦è¯†åˆ«ä½¿ç”¨æ‰‹å†Œ.docx
+
+Revision: 13
+Author: karl.li
+Date: 2014å¹´3æœˆ3æ—¥ 9:22:43
+Message:
+åŠ å…¥äº†æ—¥å¿—å’Œcrash handle
+----
+Modified : /Release/VLPRClonedDemo.exe
+Added : /VLPRClonedDemo/LogM.cpp
+Added : /VLPRClonedDemo/LogM.h
+Added : /VLPRClonedDemo/MSJExceptionHandler.cpp
+Added : /VLPRClonedDemo/MSJExceptionHandler.h
+Modified : /VLPRClonedDemo/VLPRClonedDemo.aps
+Modified : /VLPRClonedDemo/VLPRClonedDemo.rc
+Modified : /VLPRClonedDemo/VLPRClonedDemo.vcproj
+Modified : /VLPRClonedDemo/VLPRClonedDemoDlg.cpp
+
+Revision: 12
+Author: karl.li
+Date: 2014å¹´2æœˆ28æ—¥ 18:32:03
+Message:
+ä¿®å¤äº†ä¸€äº›å´©æºƒé—®é¢˜
+----
+Modified : /Release/VLPRClonedDemo.exe
+Modified : /Release/vlprClone.db
+Modified : /VLPRClonedDemo/FileUtil.cpp
+Modified : /VLPRClonedDemo/FileUtil.h
+Modified : /VLPRClonedDemo/VLPRClonedDemo.aps
+Modified : /VLPRClonedDemo/VLPRClonedDemo.rc
+Modified : /VLPRClonedDemo/VLPRClonedDemo.vcproj
+Modified : /VLPRClonedDemo/VLPRClonedDemoDlg.cpp
+Modified : /VLPRClonedDemo/VLPRClonedDemoDlg.h
+Modified : /VLPRClonedDemo/resource.h
+Modified : /svnlog.txt
 
 Revision: 11
 Author: karl.li
-Date: 2014Äê2ÔÂ27ÈÕ 18:25:46
+Date: 2014å¹´2æœˆ27æ—¥ 18:25:46
 Message:
-¼¯³É ½»Í¨Í¼Æ¬¸ñÊ½»¯
+é›†æˆ äº¤é€šå›¾ç‰‡æ ¼å¼åŒ–
 ----
 Modified : /Release/VLPRClonedDemo.exe
 Modified : /Release/vlprClone.db
@@ -21,19 +120,17 @@ Modified : /VLPRClonedDemo/resource.h
 
 Revision: 10
 Author: karl.li
-Date: 2014Äê2ÔÂ26ÈÕ 15:15:26
+Date: 2014å¹´2æœˆ26æ—¥ 15:15:26
 Message:
 
 ----
 Added : /svnlog.txt
 
-
-
 Revision: 9
 Author: karl.li
-Date: 2014Äê2ÔÂ26ÈÕ 15:03:31
+Date: 2014å¹´2æœˆ26æ—¥ 15:03:31
 Message:
-ĞŞ¸´´æ´¢Êı¾İ¿âÊ±£¬ÔÂ·İÎ´-1µÄbug
+ä¿®å¤å­˜å‚¨æ•°æ®åº“æ—¶ï¼Œæœˆä»½æœª-1çš„bug
 ----
 Modified : /Release/VLPRClonedDemo.exe
 Modified : /Release/vlprClone.db
@@ -43,9 +140,9 @@ Modified : /VLPRClonedDemo/VLPRClonedDemoDlg.cpp
 
 Revision: 8
 Author: karl.li
-Date: 2014Äê2ÔÂ26ÈÕ 13:19:39
+Date: 2014å¹´2æœˆ26æ—¥ 13:19:39
 Message:
-¼ÓÈë try  catch ´¦ÀíÒì³££¬Ä¿Ç°ÔËĞĞÎÈ¶¨£¬¿ÉÒÔ²âÊÔÁË
+åŠ å…¥ try  catch å¤„ç†å¼‚å¸¸ï¼Œç›®å‰è¿è¡Œç¨³å®šï¼Œå¯ä»¥æµ‹è¯•äº†
 ----
 Modified : /README.md
 Added : /Release/VLPRClonedDemo.exe
@@ -63,9 +160,9 @@ Modified : /VLPRClonedDemo/resource.h
 
 Revision: 7
 Author: karl.li
-Date: 2014Äê2ÔÂ25ÈÕ 18:01:47
+Date: 2014å¹´2æœˆ25æ—¥ 18:01:47
 Message:
-ÍêÉÆ°²È«ÍË³öÏß³Ì
+å®Œå–„å®‰å…¨é€€å‡ºçº¿ç¨‹
 ----
 Modified : /VLPRClonedDemo/LPR_info.h
 Added : /VLPRClonedDemo/LoadingDlg.cpp
@@ -79,11 +176,11 @@ Modified : /VLPRClonedDemo/resource.h
 
 Revision: 6
 Author: karl.li
-Date: 2014Äê2ÔÂ25ÈÕ 16:33:54
+Date: 2014å¹´2æœˆ25æ—¥ 16:33:54
 Message:
-Ì×ÅÆ³µÊ¶±ğÍê³É
-ÏÂÒ»²½£º
-1. ´´½¨Í¼Æ¬Ãû³Æ¸ñÊ½»¯¹¤¾ß£¬¸ü¼ÓÍ¼Æ¬µÄ´´½¨ÈÕÆÚÀ´¸ñÊ½»¯
+å¥—ç‰Œè½¦è¯†åˆ«å®Œæˆ
+ä¸‹ä¸€æ­¥ï¼š
+1. åˆ›å»ºå›¾ç‰‡åç§°æ ¼å¼åŒ–å·¥å…·ï¼Œæ›´åŠ å›¾ç‰‡çš„åˆ›å»ºæ—¥æœŸæ¥æ ¼å¼åŒ–
 ----
 Modified : /VLPRClonedDemo/FileUtil.cpp
 Modified : /VLPRClonedDemo/LPRDB.cpp
@@ -96,12 +193,12 @@ Modified : /VLPRClonedDemo/resource.h
 
 Revision: 5
 Author: karl.li
-Date: 2014Äê2ÔÂ25ÈÕ 13:05:20
+Date: 2014å¹´2æœˆ25æ—¥ 13:05:20
 Message:
-³É¹¦»ñÈ¡Ì×ÅÆ³µ£¬Í¨¹ıÊı¾İ¿â¶Ô±È
-ÏÂÒ»²½£º
-1. µã»÷listÏÔÊ¾Ì×ÅÆ³µÍ¼Æ¬2ÕÅ
-2. ´´½¨Í¼Æ¬Ãû³Æ¸ñÊ½»¯¹¤¾ß£¬¸ü¼ÓÍ¼Æ¬µÄ´´½¨ÈÕÆÚÀ´¸ñÊ½»¯
+æˆåŠŸè·å–å¥—ç‰Œè½¦ï¼Œé€šè¿‡æ•°æ®åº“å¯¹æ¯”
+ä¸‹ä¸€æ­¥ï¼š
+1. ç‚¹å‡»listæ˜¾ç¤ºå¥—ç‰Œè½¦å›¾ç‰‡2å¼ 
+2. åˆ›å»ºå›¾ç‰‡åç§°æ ¼å¼åŒ–å·¥å…·ï¼Œæ›´åŠ å›¾ç‰‡çš„åˆ›å»ºæ—¥æœŸæ¥æ ¼å¼åŒ–
 ----
 Modified : /VLPRClonedDemo/FileUtil.cpp
 Modified : /VLPRClonedDemo/FileUtil.h
@@ -121,9 +218,9 @@ Modified : /VLPRClonedDemo/resource.h
 
 Revision: 4
 Author: karl.li
-Date: 2014Äê2ÔÂ21ÈÕ 19:02:21
+Date: 2014å¹´2æœˆ21æ—¥ 19:02:21
 Message:
-Ôö¼ÓÁËSQLITE3
+å¢åŠ äº†SQLITE3
 ----
 Modified : /VLPRClonedDemo/VLPRClonedDemo.aps
 Modified : /VLPRClonedDemo/VLPRClonedDemo.cpp
@@ -140,7 +237,7 @@ Added : /VLPRClonedDemo/sqlite/sqlite3ext.h
 
 Revision: 3
 Author: karl.li
-Date: 2014Äê2ÔÂ21ÈÕ 14:34:58
+Date: 2014å¹´2æœˆ21æ—¥ 14:34:58
 Message:
 
 ----
@@ -148,7 +245,7 @@ Modified : /.gitignore
 
 Revision: 2
 Author: karl.li
-Date: 2014Äê2ÔÂ21ÈÕ 14:23:06
+Date: 2014å¹´2æœˆ21æ—¥ 14:23:06
 Message:
 
 ----
@@ -157,9 +254,9 @@ Added : /.gitignore
 
 Revision: 1
 Author: karl.li
-Date: 2014Äê2ÔÂ21ÈÕ 13:26:28
+Date: 2014å¹´2æœˆ21æ—¥ 13:26:28
 Message:
-³µÅÆÊ¶±ğDemo -  Ì×ÅÆ³µÊ¶±ğ,,ĞŞÕıÁËÍ¼Æ¬Ê¶±ğÄ£Ê½ÏÂ£¬»á±ÀÀ£µÄÎÊÌâ£¬ÊÇÓÉÓÚÊ¹ÓÃÁËÊÓÆµÊ¶±ğÄ£Ê½ÖĞµÄÈ«¾ÖimageWidthºÍimageHeight£¬ÏÖÔÚ½«¶ÓÁĞĞŞ¸Ä³ÉÁË½á¹¹Ìå£¬°üº¬Í¼ÏñºÍ¿í¸ß£¬Ä¿Ç°ÔËĞĞÎÈ¶¨
+è½¦ç‰Œè¯†åˆ«Demo -  å¥—ç‰Œè½¦è¯†åˆ«,,ä¿®æ­£äº†å›¾ç‰‡è¯†åˆ«æ¨¡å¼ä¸‹ï¼Œä¼šå´©æºƒçš„é—®é¢˜ï¼Œæ˜¯ç”±äºä½¿ç”¨äº†è§†é¢‘è¯†åˆ«æ¨¡å¼ä¸­çš„å…¨å±€imageWidthå’ŒimageHeightï¼Œç°åœ¨å°†é˜Ÿåˆ—ä¿®æ”¹æˆäº†ç»“æ„ä½“ï¼ŒåŒ…å«å›¾åƒå’Œå®½é«˜ï¼Œç›®å‰è¿è¡Œç¨³å®š
 
 
 ----

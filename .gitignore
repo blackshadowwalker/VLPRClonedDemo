@@ -7,8 +7,9 @@
 .metadata
 bin/
 tmp/
-.svn/
+.svn\
 .svn*
+*svn\*
 *.tmp
 *.bak
 

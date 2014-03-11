@@ -11,6 +11,7 @@
 #include "string.h"
 #include "LPRDB.h"
 #include "FileUtil.h"
+#include "TCode.h"
 
 //===========  define ================================
 #define SQLIT_NAME		"vlprClone.db"  //数据库文件名称
@@ -91,8 +92,8 @@ int insertLpr(LPR_Result *result)
 		return -1;
 
 	char strsql[MAX_SQL]={0};
-	sprintf(strsql, "insert into "TABLE_LPR_NAME"(plate, confidence, carlogo, tasksTime, lastUpdateTime,time, resultPicture, status) \
-						values(?,?,?,?,?,?,?,1) " ) ;
+	sprintf(strsql, "insert into "TABLE_LPR_NAME"(plate, confidence, carlogo, tasksTime, lastUpdateTime,time, resultPicture, folder, status) \
+						values(?,?,?,?,?,?,?,?,1) " ) ;
 
 	debug("strsql = %s \n", strsql);
 	
@@ -107,13 +108,19 @@ int insertLpr(LPR_Result *result)
 		return -1;
 	}
 	int i=0;
-	sqlite3_bind_text( stmt , 1 , result->plate , strlen(result->plate), NULL);
+	char *temp = 0 ;
+	temp = G2U(result->plate);
+	sqlite3_bind_text( stmt , 1 , temp , strlen(temp), NULL);
 	sqlite3_bind_double(  stmt , 2 , result->confidence);
-	sqlite3_bind_text( stmt , 3 , result->carLogo, strlen(result->carLogo), NULL);
+	temp = G2U(result->carLogo);
+	sqlite3_bind_text( stmt , 3 , temp, strlen(temp), NULL);
 	sqlite3_bind_int(  stmt , 4 , result->takesTime);
 	sqlite3_bind_text( stmt , 5 , result->lastUpdateTime, strlen(result->lastUpdateTime), NULL);
 	sqlite3_bind_int(  stmt , 6 , result->time);
 	sqlite3_bind_text( stmt , 7 , result->resultPicture, strlen(result->resultPicture), NULL);
+	temp = G2U(result->folder);
+	sqlite3_bind_text( stmt , 8 , temp, strlen(temp), NULL);
+
 
 	int ret = sqlite3_step(stmt);
 	sqlite3_finalize(stmt);
@@ -127,6 +134,72 @@ int insertLpr(LPR_Result *result)
 	return 1;
 }
 
+int getLPRList(char *folder, list< LPR_Result*> &list)
+{
+	pSqlite3 = OpenSqlite();
+	if(pSqlite3==NULL)
+		return -1;
+
+	char strsql[MAX_SQL]={0};
+	sprintf(strsql, "select id, plate, carLogo, resultPicture, time, lastUpdateTime  from "TABLE_LPR_NAME" where folder=? " ) ;
+
+	debug("strsql = %s \n", strsql);
+		
+	int error = sqlite3_prepare_v2(pSqlite3 , strsql , strlen(strsql) , &stmt , NULL);
+	if(error != SQLITE_OK)
+	{
+		debug("can't getLPRList[%d]: %s  \n",error,   sqlite3_errstr(error));
+		if(stmt)
+		{
+			sqlite3_finalize(stmt);
+		}
+		close_db(pSqlite3);
+		return -1;
+	}
+	char *temp = 0 ;
+	temp = G2U(folder);//folder
+	sqlite3_bind_text( stmt , 1 , temp , strlen(temp), NULL);
+
+	int nColumn = sqlite3_column_count(stmt);
+	int vtype , i, row=0;
+	int ret=0;
+	do{	
+		error = sqlite3_step(stmt);
+		if(error == SQLITE_ROW)
+		{
+			row++;
+			LPR_Result *lpr = new LPR_Result();
+			lpr->id = sqlite3_column_int(stmt , 0);
+			temp = (char*)sqlite3_column_text(stmt , 1);
+			sprintf( lpr->plate, "%s", U2G(temp));//车牌
+			temp = (char*)sqlite3_column_text(stmt , 2);
+			sprintf( lpr->carLogo, "%s", U2G(temp));//车标
+			sprintf( lpr->resultPicture, "%s", sqlite3_column_text(stmt , 3));//图片路径
+			lpr->time = sqlite3_column_int(stmt , 4);//出现时间
+			sprintf( lpr->lastUpdateTime, "%s", sqlite3_column_text(stmt , 5));//信息最后更新时间
+			
+			list.push_back(lpr);//加入队列
+		}
+		else if(error == SQLITE_DONE)
+		{
+			printf("Select finish\n");
+			ret = 0;
+			break;
+		}
+		else
+		{
+			printf("Select failed\n");
+			sqlite3_finalize(stmt);
+			ret = 0;
+			break;
+		}
+	}while(1);
+	sqlite3_finalize(stmt);
+	close_db(pSqlite3);
+
+	return list.size();
+
+}
 int getClonedLpr(LPR_Result *result, list<LPR_ResultPair*> &lprConedList,  int thread_timeInSecond)
 {
 	if(result == NULL)
@@ -139,7 +212,7 @@ int getClonedLpr(LPR_Result *result, list<LPR_ResultPair*> &lprConedList,  int t
 		return -1;
 
 	char strsql[MAX_SQL]={0};
-	sprintf(strsql, "select id, plate, resultPicture, time, lastUpdateTime  from "TABLE_LPR_NAME" where plate=? " ) ;
+	sprintf(strsql, "select id, plate, carLogo, resultPicture, time, lastUpdateTime  from "TABLE_LPR_NAME" where plate=? and carLogo!=? " ) ;
 
 	debug("strsql = %s \n", strsql);
 		
@@ -154,7 +227,11 @@ int getClonedLpr(LPR_Result *result, list<LPR_ResultPair*> &lprConedList,  int t
 		close_db(pSqlite3);
 		return -1;
 	}
-	sqlite3_bind_text( stmt , 1 , result->plate , strlen(result->plate), NULL);
+	char *temp = 0 ;
+	temp = G2U(result->plate);//车牌
+	sqlite3_bind_text( stmt , 1 , temp , strlen(temp), NULL);
+	temp = G2U(result->carLogo);//车标
+	sqlite3_bind_text( stmt , 2 , temp , strlen(temp), NULL);
 
 	int nColumn = sqlite3_column_count(stmt);
 	int vtype , i, row=0;
@@ -168,10 +245,13 @@ int getClonedLpr(LPR_Result *result, list<LPR_ResultPair*> &lprConedList,  int t
 			if( diff < thread_timeInSecond ){
 				LPR_Result *lpr = new LPR_Result();
 				lpr->id = sqlite3_column_int(stmt , 0);
-				sprintf( lpr->plate, "%s", sqlite3_column_text(stmt , 1));
-				sprintf( lpr->resultPicture, "%s", sqlite3_column_text(stmt , 2));
-				lpr->time = sqlite3_column_int(stmt , 3);
-				sprintf( lpr->lastUpdateTime, "%s", sqlite3_column_text(stmt , 4));
+				temp = (char*)sqlite3_column_text(stmt , 1);//车牌
+				sprintf( lpr->plate, "%s", U2G(temp));//车牌
+				temp = (char*)sqlite3_column_text(stmt , 2);
+				sprintf( lpr->carLogo, "%s", U2G(temp));//车标
+				sprintf( lpr->resultPicture, "%s", sqlite3_column_text(stmt , 3));//车标
+				lpr->time = sqlite3_column_int(stmt , 4);//绝对时间
+				sprintf( lpr->lastUpdateTime, "%s", sqlite3_column_text(stmt , 5));//数据更新时间
 				
 				LPR_ResultPair *lprPair = new LPR_ResultPair();
 				lprPair->set(lpr, result);//设置套牌车对
@@ -200,4 +280,45 @@ int getClonedLpr(LPR_Result *result, list<LPR_ResultPair*> &lprConedList,  int t
 
 	return ret;
 
+}
+
+//检查此文件夹是否已经分析过
+int checkFolder(char *folder)
+{
+	
+	pSqlite3 = OpenSqlite();
+	if(pSqlite3==NULL)
+		return -1;
+
+	char strsql[MAX_SQL]={0};
+	sprintf(strsql, "select * from "TABLE_LPR_NAME" where folder=?" ) ;
+
+	debug("strsql = %s \n", strsql);
+		
+	int error = sqlite3_prepare_v2(pSqlite3 , strsql , strlen(strsql) , &stmt , NULL);
+	if(error != SQLITE_OK)
+	{
+		debug("can't getLpr[%d]: %s  \n",error,   sqlite3_errstr(error));
+		if(stmt)
+		{
+			sqlite3_finalize(stmt);
+		}
+		close_db(pSqlite3);
+		return -1;
+	}
+	char *temp = 0 ;
+	temp = G2U(folder);//folder
+	sqlite3_bind_text( stmt , 1 , temp , strlen(temp), NULL);
+
+	int ret = sqlite3_step(stmt);
+
+	sqlite3_finalize(stmt);
+	close_db(pSqlite3);
+	if(ret != SQLITE_DONE)
+	{  
+		debug("sqlite3_step faile \n" );
+		return -1;
+	}      
+	
+	return (ret == SQLITE_ROW);
 }

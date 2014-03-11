@@ -24,6 +24,10 @@
 #define BT_RE_LOAD                      1015
 #define ID_STATUS_LIST                  1016
 #define BT_RESULT_STATUS                1017
+#define ID_PLAY_STATUS                  1018
+#define ID_MSG                          1019
+#define IDC_LIST_LPR                    1020
+#define ID_PROCESS_STATE                1021
 
 // Next default values for new objects
 // 
@@ -31,7 +35,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1018
+#define _APS_NEXT_CONTROL_VALUE         1022
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

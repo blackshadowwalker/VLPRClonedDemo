@@ -18,4 +18,10 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV ÷ß≥÷
 
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	virtual BOOL OnInitDialog();
+
+	long waitTime;//√Î
+	CString msg;
 };

@@ -59,8 +59,9 @@ public:
 public:
 	TH_PlateIDCfg plateConfigTh;
 
-	list<char *> mListPicturesPath;
-	list<char *> mListLPRPictures;
+	list<char*> mListPicturesTemp;
+	list<LPR_File*> mListPicturesPath;//待格式化的文件列别
+	list<LPR_File*> mListLPRPictures;//格式化后的文件(待载入内存)列表
 	bool TH_InitDll(int bMovingImage);
 	char pLocalChinese[3];    //本地汉字字符，如果此字符设置为空或者31个省份之外的字，则不使用首汉字
 
@@ -75,10 +76,8 @@ public:
 	list<LPR_ResultPair*> LPRClonedList;
 	queue<LPR_Image*> imagesQueue;
 	queue<LPR_Image*> imagesQueuePlay;
-	unsigned char*  imageDataForShow;
-	int				imageDataForShowSize;
 
-	void LoadImageFromPath(char * path);
+	void LoadImageFromPath(LPR_File * path);
 	void startThreads();
 	afx_msg void OnLbnDblclkListDirs();
 
@@ -99,4 +98,17 @@ public:
 	bool ReadConfig();
 	bool SaveConfig();
 	afx_msg void OnBnClickedReLoad();
+
+	bool	running ;
+	bool	bLoadFileFinished;
+	bool	bLoadImageFinished;
+	bool	bProcessImageFinished;
+	bool	bResultFinished;
+	CListCtrl m_listLpr;
+	afx_msg void OnLbnSelchangeListDirs();
+	afx_msg void OnNMClickListLpr(NMHDR *pNMHDR, LRESULT *pResult);
+
+
+	char picture1Path[512];
+	char picture2Path[512];
 };

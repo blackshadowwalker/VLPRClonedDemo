@@ -26,7 +26,8 @@ extern "C"
 int insertLpr(LPR_Result *result);
 int getClonedLpr(LPR_Result *result, list<LPR_ResultPair*> &lprConedList, int thread_timeInSecond = 3600);
 int delteLpr();
-
+int checkFolder(char *folder);
+int getLPRList(char *folder, list< LPR_Result*> &list);
 
 
 

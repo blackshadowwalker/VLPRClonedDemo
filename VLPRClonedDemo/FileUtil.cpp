@@ -298,6 +298,8 @@ int copyfile(const char *srcFile, const char *dstFile)
 //格式化交通图片名称
 char* FileUtil::FormatFileName(const char *srcFilePath, int indexIn, bool fileTime, const char *destDir)
 {
+	if(srcFilePath==0)
+		return NULL;
 	char * newName = new char[512];
 	try
 	{
@@ -352,21 +354,58 @@ again:
 	catch( CFileException* e ){
 		printf( "ERROR: %d File", e->m_cause);  
 		delete newName;
+		newName = 0;
 		return 0;
 	}
 	return newName;
 }
+
+
 
 char *GetDateTime(char *timeString)
 {
 	struct tm *tmt = 0;
 	time_t t = time(0);
 	tmt = localtime(&t);
+	try
+	{
 	if(timeString==0)
-		timeString = new char[32];
-	memset(timeString, 0, 32);
+		timeString = new char[128];
+	memset(timeString, 0, 128);
 	sprintf(timeString,"%4d-%02d-%02d  %02d:%02d:%02d", tmt->tm_year+1900, tmt->tm_mon+1, tmt->tm_mday, tmt->tm_hour, tmt->tm_min, tmt->tm_sec );
+	}catch(...)
+	{
+		return 0;
+	}
 	return timeString;
+}
+
+
+void __cdecl release(const char *format, ...)
+{
+	return ;
+
+	char buf[4096]={0}, *p=buf;
+
+	char* releaseTemp = new char[1024];
+	if(GetDateTime(releaseTemp)==0)
+		return;
+	sprintf(p,"%s ",releaseTemp);
+	delete releaseTemp;
+
+	p += strlen(p);
+
+    va_list args;
+    va_start(args, format);
+    p += _vsnprintf(p, sizeof buf - 1, format, args);
+    va_end(args);
+  // while ( p > buf && isspace(p[-1]) )    *--p = '\0';
+    *p++ = '\r';
+    *p++ = '\n';
+    *p = '\0';
+
+	printf(buf);
+    OutputDebugString(buf);
 }
 
 void __cdecl debug(const char *format, ...)
@@ -392,25 +431,7 @@ void __cdecl debug(const char *format, ...)
 }
 
 
-void __cdecl release(const char *format, ...)
-{
-	char buf[4096]={0}, *p=buf;
-	
-	char *t = GetDateTime();
-	sprintf(p,"%s ",t);
-	p += strlen(p);
 
-    va_list args;
-    va_start(args, format);
-    p += _vsnprintf(p, sizeof buf - 1, format, args);
-    va_end(args);
-  // while ( p > buf && isspace(p[-1]) )    *--p = '\0';
-    *p++ = '\r';
-    *p++ = '\n';
-    *p = '\0';
-
-    OutputDebugString(buf);
-}
 
 
 #include "time.h"

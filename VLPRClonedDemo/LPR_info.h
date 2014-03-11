@@ -40,6 +40,7 @@ typedef struct LPR_Result
 	long  takesTime;//耗时
 	char  lastUpdateTime[64];//时间字符串
 	long  time;//时间long
+	char  folder[512];
 	
 	const char *FormatTime(long timeIn=0)
 	{
@@ -79,12 +80,19 @@ typedef struct LPR_Image
 	int  imageWidth;
 	int  imageHeight;
 	int  imageSize;
+	char folder[512];
 	LPR_Image(){
 		memset(this, 0, sizeof(LPR_Image));
 	}
 }LPR_Image;
 
 
+typedef struct LPR_File
+{
+	char filePath[512];
+	char folder[512];
+
+}LPR_File;
 
 
 #endif
