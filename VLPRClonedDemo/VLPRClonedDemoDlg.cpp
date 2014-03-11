@@ -886,7 +886,6 @@ void CVLPRClonedDemoDlg::LoadImageFromPath(LPR_File * f)
 		try{
 			delete bitmapData.Scan0;
 			delete image;
-			delete f;
 		}catch(...){
 			log(__FUNCTION__" : delete bitmapData.Scan0 or delete image ERROR");
 		}
@@ -933,6 +932,7 @@ void LoadPictureThread(void *pParam)
 			curLoadPictureIndex ++;
 			LPR_File *f = dlg->mListLPRPictures.front();
 			dlg->mListLPRPictures.pop_front();
+			
 			if(f!=0)
 			{
 				dlg->LoadImageFromPath(f);
@@ -960,6 +960,74 @@ void LoadPictureThread(void *pParam)
 	}
 }
 
+//格式化文件名称
+void FormatFileNameThread(void *pParam)
+{
+	try
+	{
+		CVLPRClonedDemoDlg *dlg = (CVLPRClonedDemoDlg*)pParam;
+		HANDLE handleCanExit = dlg->ReginsterMyThread("FormatFileNameThread");
+		log("FormatFileNameThread 启动  handle=0x%x", handleCanExit);
+
+		char temp[512]={0};
+
+		int curFormatFileIndex = 0;
+		filesCount = dlg->mListPicturesPath.size();
+		int failedCount = 0;
+
+		curLoadPictureIndex = 0;
+		bool fileTime = true;// ((CButton *)dlg->GetDlgItem(IDC_RADIO1))->GetCheck();
+
+		char *dstDir = 0; 
+		if(dlg->m_dstDir.IsEmpty()==false)
+		{
+			dstDir = new char[512];
+			sprintf(dstDir, "%s", dlg->m_dstDir.GetBuffer(dlg->m_dstDir.GetLength()));
+		}
+		char *destFilePath = 0;
+		while(WaitForSingleObject(handleExit,0)!=WAIT_OBJECT_0  && dlg->mListPicturesPath.size() > 0)
+		{
+			if(dlg->running==false){
+				break;
+			}
+			if(dlg->mListLPRPictures.size()>100){
+				Sleep(100);
+				dlg->bLoadFileFinished = true;
+				continue;
+			}
+			dlg->bLoadFileFinished = false;
+			curFormatFileIndex ++;
+			LPR_File *f = dlg->mListPicturesPath.front();
+			dlg->mListPicturesPath.pop_front();
+			if(f!=0)
+			{
+				destFilePath = FileUtil::FormatFileName(f->filePath, curFormatFileIndex, fileTime, dstDir );
+				if(destFilePath)
+				{
+					sprintf(f->filePath, "%s", destFilePath);
+					dlg->mListLPRPictures.push_back(f);
+					
+				}else{
+					failedCount ++;
+					delete f;
+				}
+
+				sprintf(temp, "第一步:格式化文件, 文件总量: %d, 已处理: %0.3g %%@%d, 处理失败:%d ", filesCount, curFormatFileIndex*1.0/filesCount *100,  
+					curFormatFileIndex, failedCount);
+				dlg->GetDlgItem(ID_STATUS_LIST)->SetWindowText(temp);
+				//Sleep(100);
+			}
+		}
+		if(dstDir)
+			delete dstDir;
+end:
+		log("FormatFileNameThread 正常退出");
+		SetEvent(handleCanExit);//设置可以退出了
+	}catch(...){
+		log("FormatFileNameThread ERROR");
+	}
+
+}
 
 void LoadFileThread(void *pParam)
 {
@@ -1048,8 +1116,8 @@ void MonitorThread(void *pParam)
 	try
 	{
 		CVLPRClonedDemoDlg *dlg = (CVLPRClonedDemoDlg*)pParam;
-		HANDLE handleCanExit = dlg->ReginsterMyThread("FormatFileNameThread");
-		log("FormatFileNameThread 启动  handle=0x%x", handleCanExit);
+		HANDLE handleCanExit = dlg->ReginsterMyThread("MonitorThread");
+		log("MonitorThread 启动  handle=0x%x", handleCanExit);
 
 		int size[10]={0};
 		int flag = 0;
@@ -1109,75 +1177,6 @@ void MonitorThread(void *pParam)
 }
 
 
-//格式化文件名称
-void FormatFileNameThread(void *pParam)
-{
-	try
-	{
-		CVLPRClonedDemoDlg *dlg = (CVLPRClonedDemoDlg*)pParam;
-		HANDLE handleCanExit = dlg->ReginsterMyThread("FormatFileNameThread");
-		log("FormatFileNameThread 启动  handle=0x%x", handleCanExit);
-
-		char temp[512]={0};
-
-		int curFormatFileIndex = 0;
-		filesCount = dlg->mListPicturesPath.size();
-		int failedCount = 0;
-
-		curLoadPictureIndex = 0;
-		bool fileTime = true;// ((CButton *)dlg->GetDlgItem(IDC_RADIO1))->GetCheck();
-
-		char *dstDir = 0; 
-		if(dlg->m_dstDir.IsEmpty()==false)
-		{
-			dstDir = new char[512];
-			sprintf(dstDir, "%s", dlg->m_dstDir.GetBuffer(dlg->m_dstDir.GetLength()));
-		}
-		char *destFilePath = 0;
-		while(WaitForSingleObject(handleExit,0)!=WAIT_OBJECT_0  && dlg->mListPicturesPath.size() > 0)
-		{
-			if(dlg->running==false){
-				break;
-			}
-			if(dlg->mListLPRPictures.size()>100){
-				Sleep(100);
-				dlg->bLoadFileFinished = true;
-				continue;
-			}
-			dlg->bLoadFileFinished = false;
-			curFormatFileIndex ++;
-			LPR_File *f = dlg->mListPicturesPath.front();
-			dlg->mListPicturesPath.pop_front();
-			if(f!=0)
-			{
-				destFilePath = FileUtil::FormatFileName(f->filePath, curFormatFileIndex, fileTime, dstDir );
-				if(destFilePath)
-				{
-					sprintf(f->filePath, "%s", destFilePath);
-					dlg->mListLPRPictures.push_back(f);
-				}else
-					failedCount ++;
-
-				delete f;
-
-				sprintf(temp, "第一步:格式化文件, 文件总量: %d, 已处理: %0.3g %%@%d, 处理失败:%d ", filesCount, curFormatFileIndex*1.0/filesCount *100,  
-					curFormatFileIndex, failedCount);
-				dlg->GetDlgItem(ID_STATUS_LIST)->SetWindowText(temp);
-				//Sleep(100);
-			}
-		}
-		if(dstDir)
-			delete dstDir;
-end:
-		log("FormatFileNameThread 正常退出");
-		SetEvent(handleCanExit);//设置可以退出了
-	}catch(...){
-		log("FormatFileNameThread ERROR");
-	}
-
-
-
-}
 
 void CVLPRClonedDemoDlg::OnBnClickedAnay()
 {
@@ -1265,7 +1264,8 @@ void CVLPRClonedDemoDlg::OnBnClickedAnay()
 	memset(picture1Path, 0, 512);
 	memset(picture2Path, 0, 512);
 	nFrames = 0;
-	if(TH_InitDll(0)){
+	if(TH_InitDll(0))
+	{
 		running = true;
 		_beginthread(FormatFileNameThread, 0 ,this);//格式化图片名称
 		GetDlgItem(BT_ANAY)->SetWindowText("停止");
@@ -1312,7 +1312,7 @@ void ProcessMonitorThread(void *pParam)
 	{
 		CVLPRClonedDemoDlg *dlg = (CVLPRClonedDemoDlg*)pParam;
 
-		HANDLE handleCanExit = dlg->ReginsterMyThread("FormatFileNameThread");
+		HANDLE handleCanExit = dlg->ReginsterMyThread("ProcessMonitorThread");
 		log("ProcessMonitorThread 启动  handle=0x%x", handleCanExit);
 
 		char temp[512]={0};

@@ -65,7 +65,7 @@ Image* KLoadImage(CString filename)
 	//Image* thumbnailImage = image->GetThumbnailImage(10,10);
 	return image;
 }
-Bitmap* KLoadBitmap(CString filename)
+Bitmap* KLoadBitmap(CString filename)  //CString filename)
 {
 	LPWSTR strjpg = new WCHAR[255];
 	LPTSTR lpStr2 = filename.GetBuffer( filename.GetLength() );
@@ -74,6 +74,20 @@ Bitmap* KLoadBitmap(CString filename)
 
 	Bitmap *image=0;
 	image=Bitmap::FromFile(strjpg,true);
+	//Éú³ÉËõÂÔÍ¼
+	//Image* thumbnailImage = image->GetThumbnailImage(10,10);
+	return image;
+}
+Bitmap* KLoadBitmap(char* filename)  
+{
+	LPWSTR strjpg = new WCHAR[255];
+	LPTSTR lpStr2 = filename;
+	int nLen2 = MultiByteToWideChar(CP_ACP, 0,lpStr2, -1, NULL, NULL);
+	MultiByteToWideChar(CP_ACP, 0, lpStr2, -1, strjpg, nLen2);
+
+	Bitmap *image=0;
+	image=Bitmap::FromFile(strjpg,true);
+	delete strjpg;
 	//Éú³ÉËõÂÔÍ¼
 	//Image* thumbnailImage = image->GetThumbnailImage(10,10);
 	return image;

@@ -26,6 +26,7 @@ void alert(char *text);
 
 Image* KLoadImage(CString filename);
 Bitmap* KLoadBitmap(CString filename);
+Bitmap* KLoadBitmap(char* filename) ;
 void DrawImg2Hdc(Image *image, UINT id, CWnd* cWnd);
 /*************************************************/
 
