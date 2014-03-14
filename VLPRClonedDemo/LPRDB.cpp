@@ -92,8 +92,8 @@ int insertLpr(LPR_Result *result)
 		return -1;
 
 	char strsql[MAX_SQL]={0};
-	sprintf(strsql, "insert into "TABLE_LPR_NAME"(plate, confidence, carlogo, tasksTime, lastUpdateTime,time, resultPicture, folder, status) \
-						values(?,?,?,?,?,?,?,?,1) " ) ;
+	sprintf(strsql, "insert into "TABLE_LPR_NAME"(plate, confidence, plateType, plateColor, carlogo, carType, carColor1, tasksTime, time, resultPicture, folder, lastUpdateTime, status) \
+						values(?,?,?,?,?,?,?,?,?,?,?,?,1) " ) ;
 
 	debug("strsql = %s \n", strsql);
 	
@@ -110,16 +110,24 @@ int insertLpr(LPR_Result *result)
 	int i=0;
 	char *temp = 0 ;
 	temp = G2U(result->plate);
-	sqlite3_bind_text( stmt , 1 , temp , strlen(temp), NULL);
-	sqlite3_bind_double(  stmt , 2 , result->confidence);
+	sqlite3_bind_text( stmt , 1 , temp , strlen(temp), NULL);//车牌
+	sqlite3_bind_double(  stmt , 2 , result->confidence);//置信度
+	temp = G2U(result->plateType);
+	sqlite3_bind_text( stmt , 3 , temp, strlen(temp), NULL);//车牌类型
+	temp = G2U(result->plateColor);
+	sqlite3_bind_text( stmt , 4 , temp, strlen(temp), NULL);//车牌颜色
 	temp = G2U(result->carLogo);
-	sqlite3_bind_text( stmt , 3 , temp, strlen(temp), NULL);
-	sqlite3_bind_int(  stmt , 4 , result->takesTime);
-	sqlite3_bind_text( stmt , 5 , result->lastUpdateTime, strlen(result->lastUpdateTime), NULL);
-	sqlite3_bind_int(  stmt , 6 , result->time);
-	sqlite3_bind_text( stmt , 7 , result->resultPicture, strlen(result->resultPicture), NULL);
+	sqlite3_bind_text( stmt , 5 , temp, strlen(temp), NULL);//车标
+	temp = G2U(result->carType);
+	sqlite3_bind_text( stmt , 6 , temp, strlen(temp), NULL);//车型
+	temp = G2U(result->carColor1);
+	sqlite3_bind_text( stmt , 7 , temp, strlen(temp), NULL);//车颜色
+	sqlite3_bind_int(  stmt , 8 , result->takesTime);//耗时
+	sqlite3_bind_int(  stmt , 9 , result->time);//出现时间
+	sqlite3_bind_text( stmt , 10 , result->resultPicture, strlen(result->resultPicture), NULL);//图片地址
 	temp = G2U(result->folder);
-	sqlite3_bind_text( stmt , 8 , temp, strlen(temp), NULL);
+	sqlite3_bind_text( stmt , 11, temp, strlen(temp), NULL);//所在文件夹
+	sqlite3_bind_text( stmt , 12, result->lastUpdateTime, strlen(result->lastUpdateTime), NULL);//最后更新时间
 
 
 	int ret = sqlite3_step(stmt);
@@ -141,7 +149,7 @@ int getLPRList(char *folder, list< LPR_Result*> &list)
 		return -1;
 
 	char strsql[MAX_SQL]={0};
-	sprintf(strsql, "select id, plate, carLogo, resultPicture, time, lastUpdateTime  from "TABLE_LPR_NAME" where folder=? " ) ;
+	sprintf(strsql, "select id, plate, plateType, plateColor, carLogo, carType, carColor1, resultPicture, time, lastUpdateTime  from "TABLE_LPR_NAME" where folder=? " ) ;
 
 	debug("strsql = %s \n", strsql);
 		
@@ -169,14 +177,22 @@ int getLPRList(char *folder, list< LPR_Result*> &list)
 		{
 			row++;
 			LPR_Result *lpr = new LPR_Result();
-			lpr->id = sqlite3_column_int(stmt , 0);
-			temp = (char*)sqlite3_column_text(stmt , 1);
-			sprintf( lpr->plate, "%s", U2G(temp));//车牌
-			temp = (char*)sqlite3_column_text(stmt , 2);
-			sprintf( lpr->carLogo, "%s", U2G(temp));//车标
-			sprintf( lpr->resultPicture, "%s", sqlite3_column_text(stmt , 3));//图片路径
-			lpr->time = sqlite3_column_int(stmt , 4);//出现时间
-			sprintf( lpr->lastUpdateTime, "%s", sqlite3_column_text(stmt , 5));//信息最后更新时间
+			lpr->id = sqlite3_column_int(stmt , 0);//id
+			temp = (char*)sqlite3_column_text(stmt , 1);//车牌
+			sprintf( lpr->plate, "%s", U2G(temp));
+			temp = (char*)sqlite3_column_text(stmt , 2);//车牌类型
+			sprintf( lpr->plateType, "%s", U2G(temp));
+			temp = (char*)sqlite3_column_text(stmt , 3);//车牌颜色
+			sprintf( lpr->plateColor, "%s", U2G(temp));
+			temp = (char*)sqlite3_column_text(stmt , 4);//车标
+			sprintf( lpr->carLogo, "%s", U2G(temp));
+			temp = (char*)sqlite3_column_text(stmt , 5);//车型
+			sprintf( lpr->carType, "%s", U2G(temp));
+			temp = (char*)sqlite3_column_text(stmt , 6);//车颜色
+			sprintf( lpr->carColor1, "%s", U2G(temp));
+			sprintf( lpr->resultPicture, "%s", sqlite3_column_text(stmt , 7));//图片路径
+			lpr->time = sqlite3_column_int(stmt , 8);//出现时间
+			sprintf( lpr->lastUpdateTime, "%s", sqlite3_column_text(stmt , 9));//信息最后更新时间
 			
 			list.push_back(lpr);//加入队列
 		}
@@ -242,14 +258,15 @@ int getClonedLpr(LPR_Result *result, list<LPR_ResultPair*> &lprConedList,  int t
 		{
 			row++;
 			diff = abs( result->time -  sqlite3_column_int(stmt , 3));
-			if( diff < thread_timeInSecond ){
+		//	if( diff < thread_timeInSecond ) // 现在是根据车牌相同、车标不同来判断套牌车（与历史数据对比，即相当于与车管库对比）
+			{
 				LPR_Result *lpr = new LPR_Result();
-				lpr->id = sqlite3_column_int(stmt , 0);
+				lpr->id = sqlite3_column_int(stmt , 0);//id
 				temp = (char*)sqlite3_column_text(stmt , 1);//车牌
-				sprintf( lpr->plate, "%s", U2G(temp));//车牌
-				temp = (char*)sqlite3_column_text(stmt , 2);
-				sprintf( lpr->carLogo, "%s", U2G(temp));//车标
-				sprintf( lpr->resultPicture, "%s", sqlite3_column_text(stmt , 3));//车标
+				sprintf( lpr->plate, "%s", U2G(temp));
+				temp = (char*)sqlite3_column_text(stmt , 2);//车标
+				sprintf( lpr->carLogo, "%s", U2G(temp));
+				sprintf( lpr->resultPicture, "%s", sqlite3_column_text(stmt , 3));//图片地址
 				lpr->time = sqlite3_column_int(stmt , 4);//绝对时间
 				sprintf( lpr->lastUpdateTime, "%s", sqlite3_column_text(stmt , 5));//数据更新时间
 				

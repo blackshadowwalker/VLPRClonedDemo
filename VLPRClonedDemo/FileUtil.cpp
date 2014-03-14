@@ -224,7 +224,6 @@ char* FileUtil::SelectFolder(HWND hwnd, char* title, char* dir)
 		bi.lpfn				= 0;
 		bi.lParam			= 0;
 	}
-	
 
 	LPITEMIDLIST pidl=(LPITEMIDLIST)CoTaskMemAlloc(sizeof(LPITEMIDLIST));  
 	pidl = SHBrowseForFolder(&bi);  

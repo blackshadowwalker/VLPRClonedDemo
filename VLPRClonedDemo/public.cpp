@@ -13,7 +13,7 @@
 #include <stdio.h>
  
 #include "public.h"
-
+#include "FileUtil.h"
 
 
 void alert(char *text)
@@ -80,6 +80,10 @@ Bitmap* KLoadBitmap(CString filename)  //CString filename)
 }
 Bitmap* KLoadBitmap(char* filename)  
 {
+	if( strlen(filename)<4 )
+		return 0;
+	if( !FileUtil::FindFirstFileExists(filename, FALSE) )
+		return 0;
 	LPWSTR strjpg = new WCHAR[255];
 	LPTSTR lpStr2 = filename;
 	int nLen2 = MultiByteToWideChar(CP_ACP, 0,lpStr2, -1, NULL, NULL);

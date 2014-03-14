@@ -32,6 +32,8 @@ HANDLE handleLPRThreadStoped=0;
 HANDLE hShowVideoFrame=0;
 HANDLE hLoadedFilesName=0;
 
+static bool debugMode = false;
+
 void LoadFileThread(void *pParam);
 
 //====================================================================
@@ -192,7 +194,9 @@ BOOL CVLPRClonedDemoDlg::OnInitDialog()
 	cols = 0;
 	m_listLpr.InsertColumn( cols++, "车牌", LVCFMT_LEFT, 80 );
 	m_listLpr.InsertColumn( cols++, "出现时间", LVCFMT_LEFT, 150 );
-	m_listLpr.InsertColumn( cols++, "车标", LVCFMT_LEFT, 150 );
+	m_listLpr.InsertColumn( cols++, "车标", LVCFMT_LEFT, 100 );
+	m_listLpr.InsertColumn( cols++, "车型", LVCFMT_LEFT, 100 );
+	m_listLpr.InsertColumn( cols++, "车颜色", LVCFMT_LEFT, 100 );
 	m_listLpr.InsertColumn( cols++, "图片", LVCFMT_LEFT, 50 );
 	m_listLpr.InsertColumn( cols++, "ID1", LVCFMT_LEFT, 30 );
 
@@ -298,8 +302,8 @@ void CVLPRClonedDemoDlg::OnBnClickedAddBrowser()
 
 	char temp[256]={0};
 	if(checkFolder(path)){
-		MessageBox("此文件夹已经分析过!");
-		return ;
+		if(MessageBox("此文件夹已经分析过,继续分析 ?", 0, MB_YESNO | MB_ICONQUESTION  )!=IDYES)
+			return ;
 	}
 
 	bool bSame=false;
@@ -511,7 +515,7 @@ void ProcessResultThread(void *pParam)
 			sprintf(temp, "第四步:处理结果,还剩: %d", dlg->LPRQueueResult.size());
 			dlg->GetDlgItem(BT_RESULT_STATUS)->SetWindowText(temp);
 
-			log("ProcessResultThread Frame=%d  Plate=%s  (%d,%d)-(%d,%d)", dlg->nFrames, result->plate, \
+			log("ProcessResultThread Frame=%d  Plate=%s  Logo=%s (%d,%d)-(%d,%d)", dlg->nFrames, result->plate, result->carLogo, \
 				result->plateRect.left, result->plateRect.top,
 				result->plateRect.right, result->plateRect.bottom);
 
@@ -727,11 +731,18 @@ void RecognitionThread(void *pParam)
 					{
 						ret = -1;
 						t1 = clock();
-						sprintf(filename, "E:/vlpr-out/%d.bmp", dlg->nFrames);
-			//VideoUtil::write24BitBmpFile(filename, pLprImage->imageWidth, pLprImage->imageHeight,
-			//	(unsigned char*)pLprImage->buffer,  pLprImage->imageWidth);//抓拍特写图
-
-						ret  =  TH_RecogImage( pLprImage->buffer,  pLprImage->imageWidth, pLprImage->imageHeight,  result, &nResultNum, &rcDetect, &dlg->plateConfigTh); 
+						//sprintf(filename, "E:/vlpr-out/%d.bmp", dlg->nFrames);
+						//VideoUtil::write24BitBmpFile(filename, pLprImage->imageWidth, pLprImage->imageHeight,
+						//	(unsigned char*)pLprImage->buffer,  pLprImage->imageWidth);//抓拍特写图
+						if(debugMode){
+							sprintf(result[0].license,"京A88888");
+							result[0].nCarLogo = CarLogo_AUDI ;
+							result[0].nConfidence = 50;
+							ret = 0;
+							nResultNum = 1;
+						}else{
+							ret  =  TH_RecogImage( pLprImage->buffer,  pLprImage->imageWidth, pLprImage->imageHeight,  result, &nResultNum, &rcDetect, &dlg->plateConfigTh); 
+						}
 						t2 = clock();
 					}
 					catch(...)
@@ -762,12 +773,15 @@ void RecognitionThread(void *pParam)
 						ret = 1;
 						LPR_Result *r = new LPR_Result();
 						r->takesTime = t2-t1;
-						sprintf(r->plate, "%s", result[0].license);
-						r->confidence = result[0].nConfidence*1.0/100;
-						sprintf(r->carLogo, "%s", CarLogo[ result[0].nCarLogo] );
-						sprintf(r->plateType, "%s", CarType[result[0].nType]);
-						sprintf(r->direct, "%s", TH_Dirction[result[0].nDirection]);
-						sprintf(r->carColor1, "%s", CarColor[result[0].nCarColor]);
+						sprintf(r->plate, "%s", result[0].license);//车牌
+						r->confidence = result[0].nConfidence*1.0/100;//置信度
+						sprintf(r->plateType, "%s", plateType[result[0].nType]);//车牌类型
+						sprintf(r->plateColor, "%s", plateColor[result[0].nColor]);//车牌颜色
+						sprintf(r->carLogo, "%s", CarLogo[ result[0].nCarLogo] );//车标
+						sprintf(r->carType, "%s", CarLogo[ result[0].nCarType] );//车型
+						sprintf(r->carColor1, "%s", CarLogo[ result[0].nCarColor] );//车颜色
+						sprintf(r->direct, "%s", TH_Dirction[result[0].nDirection]);//方向
+
 						r->plateRect.left = result[0].rcLocation.left;
 						r->plateRect.top = result[0].rcLocation.top;
 						r->plateRect.right = result[0].rcLocation.right;
@@ -782,7 +796,7 @@ void RecognitionThread(void *pParam)
 						r->imageWidth = pLprImage->imageWidth;
 						r->imageHeight = pLprImage->imageHeight;
 
-						//					debug("车牌: %s  车标: %s", result[0].license, CarLogo[ result[0].nCarLogo] );
+						log("车牌: %s  车标: %s", result[0].license, CarLogo[ result[0].nCarLogo] );
 
 						dlg->LPRQueueResult.push(r);
 						debug("RecognitionThread LPRQueueResult.push  0x%x", r);
@@ -1264,7 +1278,13 @@ void CVLPRClonedDemoDlg::OnBnClickedAnay()
 	memset(picture1Path, 0, 512);
 	memset(picture2Path, 0, 512);
 	nFrames = 0;
-	if(TH_InitDll(0))
+
+	if(debugMode){
+		running = true;
+		_beginthread(FormatFileNameThread, 0 ,this);//格式化图片名称
+		GetDlgItem(BT_ANAY)->SetWindowText("停止");
+	}
+	else if(TH_InitDll(0))
 	{
 		running = true;
 		_beginthread(FormatFileNameThread, 0 ,this);//格式化图片名称
@@ -1409,14 +1429,13 @@ void CVLPRClonedDemoDlg::OnMouseMove(UINT nFlags, CPoint pointIn)
 
 	//debug("OnMouseMove:  point(%d, %d) ", point.x, point.y );
 
-	POSITION pos = m_list.GetFirstSelectedItemPosition();
-	int nItem = m_list.GetNextSelectedItem(pos);
-	CString temp;
+	CString tempPath;
 
 	if(r1.PtInRect(pointIn) || r2.PtInRect(pointIn) )
 	{
 		//	debug("PlayVideo:  r1.PtInRect(%d)  r2.PtInRect(%d) ", r1.PtInRect(point),  r2.PtInRect(point));
-		if(nItem>=0){
+		//if(nItem>=0)
+		{
 			int width = 0;
 			int height =0;
 
@@ -1435,6 +1454,8 @@ void CVLPRClonedDemoDlg::OnMouseMove(UINT nFlags, CPoint pointIn)
 
 				bix = width*1.0/r1.Width();
 				biy = height*1.0/r1.Height();
+
+				tempPath = picture1Path;
 			}
 			else if(r2.PtInRect(pointIn) && strlen(picture2Path)>2 ){
 				Image *image = KLoadBitmap( picture2Path );
@@ -1448,7 +1469,10 @@ void CVLPRClonedDemoDlg::OnMouseMove(UINT nFlags, CPoint pointIn)
 
 				bix = width*1.0/r2.Width();
 				biy = height*1.0/r2.Height();
-			}
+
+				tempPath = picture2Path;
+			}else
+				goto end;
 
 			pt.x = bix * point.x;
 			pt.y = biy * point.y;
@@ -1472,7 +1496,7 @@ void CVLPRClonedDemoDlg::OnMouseMove(UINT nFlags, CPoint pointIn)
 
 			int w=0, h=0;
 			Rect rectIn( pt.x, pt.y, r3.Width(), r3.Height());
-			unsigned char* imageData = GetImageDataByPath( temp.GetBuffer(temp.GetLength()), &w, &h, &rectIn);
+			unsigned char* imageData = GetImageDataByPath( tempPath.GetBuffer(tempPath.GetLength()), &w, &h, &rectIn);
 
 			if(imageData)
 			{
@@ -1565,7 +1589,9 @@ void CVLPRClonedDemoDlg::OnBnClickedBrowserDestDir()
 		sprintf(tempdir, m_dstDir.GetBuffer(m_dstDir.GetLength()));
 	}
 	char *path = FileUtil::SelectFolder(this->m_hWnd, "选择输出文件夹", tempdir);
-	m_dstDir.Format( path );
+
+	if(path!=NULL)
+		m_dstDir.Format( path );
 
 	UpdateData(false);
 }
@@ -1617,12 +1643,13 @@ void CVLPRClonedDemoDlg::OnLbnSelchangeListDirs()
 	int index = m_listDirs.GetCurSel();
 	if(index<0)
 		return ;
-	char folder[512]={0};
+	char folder[512]={0}, temp[256]={0};
 	m_listDirs.GetText(index, folder);
 	list< LPR_Result*> list;
 	LPR_Result *p=0;
 	if( getLPRList(folder, list) >0){
 		int count = list.size();
+		m_listLpr.DeleteAllItems();//
 		for(int i=0; i<count; i++){
 			p = list.front();
 			list.pop_front();
@@ -1630,13 +1657,18 @@ void CVLPRClonedDemoDlg::OnLbnSelchangeListDirs()
 				int nRow = m_listLpr.InsertItem(0, "");//
 				int cols =0 ;
 				m_listLpr.SetItemText(nRow, cols++, p->plate);//车牌
-				m_listLpr.SetItemText(nRow, cols++, p->FormatTime());//时间1
+				m_listLpr.SetItemText(nRow, cols++, p->FormatTime());//时间
 				m_listLpr.SetItemText(nRow, cols++, p->carLogo);//车标
+				m_listLpr.SetItemText(nRow, cols++, p->carType);//车型
+				m_listLpr.SetItemText(nRow, cols++, p->carColor1);//车颜色
 				m_listLpr.SetItemText(nRow, cols++, p->resultPicture);//图片路径
+				sprintf(temp, "%d", p->id);
+				m_listLpr.SetItemText(nRow, cols++, temp);//id
 			}
 		}
 	}else{
-		MessageBox("此文件夹无记录");
+		GetDlgItem(ID_STATUS_LIST)->SetWindowText("此文件夹无记录");
+		//MessageBox("此文件夹无记录");
 	}
 }
 
@@ -1648,7 +1680,8 @@ void CVLPRClonedDemoDlg::OnNMClickListLpr(NMHDR *pNMHDR, LRESULT *pResult)
 	int nItem = m_listLpr.GetNextSelectedItem(pos);
 	CString temp;
 	if(nItem>=0){
-		temp = m_list.GetItemText(nItem, 3);
+
+		temp = m_listLpr.GetItemText(nItem, 5);
 		Bitmap* imagePlate = KLoadBitmap(temp.GetBuffer(temp.GetLength()));
 		if(imagePlate)
 		{

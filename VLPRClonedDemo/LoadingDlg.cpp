@@ -15,6 +15,7 @@ CLoadingDlg::CLoadingDlg(CWnd* pParent /*=NULL*/)
 	, msg(_T(""))
 {
 
+	waitTime = 0;
 }
 
 CLoadingDlg::~CLoadingDlg()

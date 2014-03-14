@@ -25,8 +25,9 @@ typedef struct LPR_Result
 	float confidence;//置信度
 	TF_Rect plateRect;//车牌区域
 	char  plateType[32];//车牌类型
-//	char  plateColor[32];//车牌颜色
+	char  plateColor[32];//车牌颜色
 	
+	char  carType[32];//车型
 	char  carLogo[32];//车标
 	char  carColor1[32];//车辆颜色
 	char  carColor2[32];//车辆次颜色

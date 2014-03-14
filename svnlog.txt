@@ -1,3 +1,82 @@
+
+
+Revision: 22
+Author: karl.li
+Date: 2014年3月14日 12:17:17
+Message:
+1. 修复了问题 
+@1. 当前系统列表显示出车辆信息后，点击某条数据，窗口不能自动显示该图片
+@3. 多文件夹分析后，先点击文件夹1，再点击文件夹2，再点回文件夹1，列表中显示的数量会一直增多
+@4. 多次操作该系统未显示出有套牌车辆，在车辆信息列表中看到有套牌车辆，但套牌车处无显示，具体见附件截图
+@5. 现在已修改成车牌相同车标不同即为套牌车
+----
+Modified : /Release/VLPRClonedDemo.exe
+Modified : /VLPRClonedDemo/FileUtil.h
+Modified : /VLPRClonedDemo/LPRDB.cpp
+Modified : /VLPRClonedDemo/LPR_info.h
+Modified : /VLPRClonedDemo/VLPRClonedDemo.aps
+Modified : /VLPRClonedDemo/VLPRClonedDemo.rc
+Modified : /VLPRClonedDemo/VLPRClonedDemoDlg.cpp
+Modified : /VLPRClonedDemo/public.cpp
+Modified : /include/TH_PlateID.h
+
+Revision: 21
+Author: karl.li
+Date: 2014年3月12日 15:47:24
+Message:
+1. 修复了选择输出目录，点击取消报错
+2. 加入了对车辆的车标、车型、车身颜色的支持
+3. 现在的套牌识别的提取条件：车牌与数据库中的历史数据做比较，车牌相同，车标不同，且时间差小于设定的时间阈值（默认60分钟）的即为套牌车； 不是文件夹1中的车辆只与文件夹2中的比较（是与历史数据比较），故没有多路同时显示的效果
+----
+Modified : /Release/VLPRClonedDemo.exe
+Modified : /VLPRClonedDemo/FileUtil.cpp
+Modified : /VLPRClonedDemo/LPRDB.cpp
+Modified : /VLPRClonedDemo/LPR_info.h
+Modified : /VLPRClonedDemo/VLPRClonedDemo.aps
+Modified : /VLPRClonedDemo/VLPRClonedDemo.rc
+Modified : /VLPRClonedDemo/VLPRClonedDemoDlg.cpp
+
+Revision: 20
+Author: karl.li
+Date: 2014年3月12日 11:08:31
+Message:
+现在可以正常删除目录
+----
+Modified : /Release/VLPRClonedDemo.exe
+Modified : /VLPRClonedDemo/LoadingDlg.cpp
+Modified : /VLPRClonedDemo/VLPRClonedDemo.aps
+Modified : /VLPRClonedDemo/VLPRClonedDemo.rc
+Modified : /VLPRClonedDemo/VLPRClonedDemoDlg.cpp
+
+Revision: 19
+Author: karl.li
+Date: 2014年3月11日 18:22:17
+Message:
+上一版本运行会崩掉，原因是delete f 2 次
+
+----
+Modified : /.gitignore
+Modified : /Release/VLPRClonedDemo.exe
+Modified : /VLPRClonedDemo/VLPRClonedDemo.vcproj
+Modified : /VLPRClonedDemo/VLPRClonedDemoDlg.cpp
+Modified : /VLPRClonedDemo/public.cpp
+Modified : /VLPRClonedDemo/public.h
+Modified : /svnlog.txt
+
+Revision: 18
+Author: karl.li
+Date: 2014年3月11日 12:36:44
+Message:
+
+----
+Modified : /.gitignore
+Modified : /Release/VLPRClonedDemo.exe
+Modified : /Release/vlprClone.db
+Modified : /VLPRClonedDemo/VLPRClonedDemo.vcproj
+Modified : /svnlog.txt
+
+
+
 Revision: 17
 Author: karl.li
 Date: 2014年3月11日 12:27:39

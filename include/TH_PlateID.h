@@ -28,7 +28,7 @@ extern "C" {
 
 
 //车牌颜色
-	static char *CarColor[6]={"未知","蓝色","黄色","白色","黑色","绿色"};
+	static char *plateColor[6]={"未知","蓝色","黄色","白色","黑色","绿色"};
 #define LC_UNKNOWN  0	// 未知
 #define LC_BLUE   1		// 蓝色
 #define LC_YELLOW 2		// 黄色
@@ -37,7 +37,7 @@ extern "C" {
 #define LC_GREEN  5		// 绿色
 	
 //车牌类型
-	static char *CarType[15]={"未知车牌","蓝牌小汽车","黑牌小汽车","单排黄牌","双排黄牌","警车车牌","武警车牌","个性化车牌","单排军车","双排军车","使馆牌","香港牌","拖拉机","澳门牌",""};
+	static char *plateType[15]={"未知","蓝牌小汽车","黑牌小汽车","单排黄牌","双排黄牌","警车车牌","武警车牌","个性化车牌","单排军车","双排军车","使馆牌","香港牌","拖拉机","澳门牌",""};
 #define LT_UNKNOWN  0   //未知车牌
 #define LT_BLUE     1   //蓝牌小汽车
 #define LT_BLACK    2   //黑牌小汽车
@@ -54,6 +54,7 @@ extern "C" {
 #define LT_MACAU    13  //澳门牌
 
 //车辆颜色
+		static char *CarColor[9]={"白","灰(银)","黄","粉","红","绿","蓝","棕","黑"};
 #define LGRAY_DARK	0	//深
 #define LGRAY_LIGHT	1	//浅
 
@@ -138,6 +139,8 @@ static char *CarLogo[20]={"未知", "奥迪", "宝马", "奔驰", "本田", "标志","别克",
 #define CarLogo_OTHER         17   //其他
 
 // 车辆类型
+//车标类型
+static char *CarType[4]={"未知", "轿车", "面包车",""};
 #define CARTYPE_UNKNOWN		0	// 未知
 #define CARTYPE_SALOON		1	// 轿车
 #define CARTYPE_VAN			2	// 面包车
