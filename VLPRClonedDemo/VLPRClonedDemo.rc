@@ -83,7 +83,7 @@ CAPTION "关于 套牌车识别"
 FONT 9, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,14,14,20,20
-    LTEXT           "VLPRClonedDemo，1.2.2.1 版",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "VLPRClonedDemo，1.2.3.0  版",IDC_STATIC,42,14,114,8,SS_NOPREFIX
     LTEXT           "Copyright (C) 2014 @ Teleframe",IDC_STATIC,42,29,114,8
     DEFPUSHBUTTON   "确定",IDOK,113,99,50,14,WS_GROUP
     LTEXT           "套牌车识别",IDC_STATIC,43,44,67,8
@@ -127,7 +127,7 @@ IDD_DIALOG_LOADING DIALOGEX 0, 0, 251, 46
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    CTEXT           "正在退出......",ID_MSG,0,14,249,13
+    CTEXT           "正在退出......",ID_MSG,0,17,249,13
 END
 
 
@@ -155,12 +155,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Teleframe"
             VALUE "FileDescription", "信帧套牌车识别"
-            VALUE "FileVersion", "1.2.2.1"
+            VALUE "FileVersion", "1.2.3.0"
             VALUE "InternalName", "VLPRClonedDemo.exe"
             VALUE "LegalCopyright", "(C)Teleframe  保留所有权利。"
             VALUE "OriginalFilename", "VLPRClonedDemo.exe"
             VALUE "ProductName", "信帧套牌车识别"
-            VALUE "ProductVersion", "1.2.2.1"
+            VALUE "ProductVersion", "1.2.3.0"
         END
     END
     BLOCK "VarFileInfo"

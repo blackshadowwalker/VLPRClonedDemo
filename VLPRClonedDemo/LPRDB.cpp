@@ -228,7 +228,7 @@ int getClonedLpr(LPR_Result *result, list<LPR_ResultPair*> &lprConedList,  int t
 		return -1;
 
 	char strsql[MAX_SQL]={0};
-	sprintf(strsql, "select id, plate, carLogo, resultPicture, time, lastUpdateTime  from "TABLE_LPR_NAME" where plate=? and carLogo!=? " ) ;
+	sprintf(strsql, "select id, plate, carLogo, resultPicture, time, lastUpdateTime, carColor1  from "TABLE_LPR_NAME" where plate=? and carLogo!=? " ) ;
 
 	debug("strsql = %s \n", strsql);
 		
@@ -269,6 +269,8 @@ int getClonedLpr(LPR_Result *result, list<LPR_ResultPair*> &lprConedList,  int t
 				sprintf( lpr->resultPicture, "%s", sqlite3_column_text(stmt , 3));//图片地址
 				lpr->time = sqlite3_column_int(stmt , 4);//绝对时间
 				sprintf( lpr->lastUpdateTime, "%s", sqlite3_column_text(stmt , 5));//数据更新时间
+				temp = (char*)sqlite3_column_text(stmt , 6);//车颜色
+				sprintf( lpr->carColor1, "%s", U2G(temp));
 				
 				LPR_ResultPair *lprPair = new LPR_ResultPair();
 				lprPair->set(lpr, result);//设置套牌车对

@@ -178,13 +178,16 @@ BOOL CVLPRClonedDemoDlg::OnInitDialog()
 	m_list.InsertColumn( cols++, "车牌", LVCFMT_LEFT, 80 );
 	m_list.InsertColumn( cols++, "车1出现时间", LVCFMT_LEFT, 150 );
 	m_list.InsertColumn( cols++, "车1车标", LVCFMT_LEFT, 80 );
+	m_list.InsertColumn( cols++, "车1颜色", LVCFMT_LEFT, 80 );
 	m_list.InsertColumn( cols++, "车2出现时间", LVCFMT_LEFT, 150 );
 	m_list.InsertColumn( cols++, "车2车标", LVCFMT_LEFT, 80 );
+	m_list.InsertColumn( cols++, "车2颜色", LVCFMT_LEFT, 80 );
 	m_list.InsertColumn( cols++, "时间差(分钟)", LVCFMT_LEFT, 120 );
-	m_list.InsertColumn( cols++, "图片1", LVCFMT_LEFT, 50 );
-	m_list.InsertColumn( cols++, "图片2", LVCFMT_LEFT, 50 );
-	m_list.InsertColumn( cols++, "ID1", LVCFMT_LEFT, 30 );
-	m_list.InsertColumn( cols++, "ID2", LVCFMT_LEFT, 30 );
+
+	m_list.InsertColumn( cols++, "图片1", LVCFMT_LEFT, 0 );
+	m_list.InsertColumn( cols++, "图片2", LVCFMT_LEFT, 0 );
+	m_list.InsertColumn( cols++, "ID1", LVCFMT_LEFT, 0 );
+	m_list.InsertColumn( cols++, "ID2", LVCFMT_LEFT, 0 );
 
 	dwStyle = m_listLpr.GetExtendedStyle();
 	dwStyle |= LVS_EX_FULLROWSELECT;//选中某行使整行高亮（只适用与report风格的listctrl）
@@ -194,11 +197,14 @@ BOOL CVLPRClonedDemoDlg::OnInitDialog()
 	cols = 0;
 	m_listLpr.InsertColumn( cols++, "车牌", LVCFMT_LEFT, 80 );
 	m_listLpr.InsertColumn( cols++, "出现时间", LVCFMT_LEFT, 150 );
+	m_listLpr.InsertColumn( cols++, "车牌类型", LVCFMT_LEFT, 100 );
 	m_listLpr.InsertColumn( cols++, "车标", LVCFMT_LEFT, 100 );
-	m_listLpr.InsertColumn( cols++, "车型", LVCFMT_LEFT, 100 );
 	m_listLpr.InsertColumn( cols++, "车颜色", LVCFMT_LEFT, 100 );
-	m_listLpr.InsertColumn( cols++, "图片", LVCFMT_LEFT, 50 );
-	m_listLpr.InsertColumn( cols++, "ID1", LVCFMT_LEFT, 30 );
+	m_listLpr.InsertColumn( cols++, "车型", LVCFMT_LEFT, 100 );
+
+
+	m_listLpr.InsertColumn( cols++, "图片", LVCFMT_LEFT, 0 );
+	m_listLpr.InsertColumn( cols++, "ID1", LVCFMT_LEFT, 0 );
 
 
 	startThreads();
@@ -373,12 +379,13 @@ bool CVLPRClonedDemoDlg::TH_InitDll(int bMovingImage)
 		sprintf(error, "%s,启动分析失败",  pErrorInfo[n]);
 		MessageBox(error);
 	}
-	int m =TH_SetEnabledPlateFormat(PARAM_TWOROWYELLOW_ON, &plateConfigTh); 
+	int m =TH_SetEnabledPlateFormat(PARAM_INDIVIDUAL_ON, &plateConfigTh); //车牌识别
 	int k = TH_SetImageFormat(ImageFormatBGR, FALSE, FALSE, &plateConfigTh); 
+	TH_SetEnableCarTypeClassify(true,  &plateConfigTh); //车辆类型识别
 	char m_LocalProvince[10] = {0}; 
 	sprintf(m_LocalProvince, "%s", pLocalChinese);
-	int l = TH_SetProvinceOrder(m_LocalProvince, &plateConfigTh); 
-	int logo =TH_SetEnableCarLogo(true, &plateConfigTh); 
+	int l = TH_SetProvinceOrder(m_LocalProvince, &plateConfigTh); //本地车牌汉字
+	int logo =TH_SetEnableCarLogo(true, &plateConfigTh); //识别logo车标
 
 	if (n!=0||m!=0||k!=0||l!=0 | logo!=0) 
 		return false; 
@@ -556,7 +563,7 @@ void ProcessResultThread(void *pParam)
 						dlg->LPRClonedList.pop_front();
 						if(lprPair==0)
 							continue;
-						if(lprPair->lpr_result[0].plate=="" || lprPair->lpr_result[0].plate=="")
+						if(lprPair->lpr_result[0].plate=="" || lprPair->lpr_result[1].plate=="")
 							continue;
 
 						int nRow = dlg->m_list.InsertItem(0, "");//
@@ -565,8 +572,10 @@ void ProcessResultThread(void *pParam)
 						dlg->m_list.SetItemText(nRow, cols++, lprPair->lpr_result[0].plate);//车牌
 						dlg->m_list.SetItemText(nRow, cols++, lprPair->lpr_result[0].FormatTime());//时间1
 						dlg->m_list.SetItemText(nRow, cols++, lprPair->lpr_result[0].carLogo);//车标1
+						dlg->m_list.SetItemText(nRow, cols++, lprPair->lpr_result[0].carColor1);//颜色1
 						dlg->m_list.SetItemText(nRow, cols++, lprPair->lpr_result[1].FormatTime());//时间2
 						dlg->m_list.SetItemText(nRow, cols++, lprPair->lpr_result[1].carLogo);//车标2
+						dlg->m_list.SetItemText(nRow, cols++, lprPair->lpr_result[1].carColor1);//颜色1
 						sprintf(temp, "%d ", abs(lprPair->lpr_result[1].time - lprPair->lpr_result[0].time)/60);
 						dlg->m_list.SetItemText(nRow, cols++,  temp);//时间差(分钟)
 						dlg->m_list.SetItemText(nRow, cols++, lprPair->lpr_result[0].resultPicture);//图片1
@@ -741,7 +750,8 @@ void RecognitionThread(void *pParam)
 							ret = 0;
 							nResultNum = 1;
 						}else{
-							ret  =  TH_RecogImage( pLprImage->buffer,  pLprImage->imageWidth, pLprImage->imageHeight,  result, &nResultNum, &rcDetect, &dlg->plateConfigTh); 
+							ret  =  TH_RecogImage( pLprImage->buffer,  pLprImage->imageWidth, pLprImage->imageHeight,  result, &nResultNum, &rcDetect, &dlg->plateConfigTh); //识别车牌
+							TH_EvaluateCarColor( pLprImage->buffer,  pLprImage->imageWidth, pLprImage->imageHeight,  result, &nResultNum, &rcDetect, &dlg->plateConfigTh); //识别车辆颜色
 						}
 						t2 = clock();
 					}
@@ -764,7 +774,6 @@ void RecognitionThread(void *pParam)
 						//	MessageBox(0, "RecognitionThread Error", "", MB_OK);
 					}
 					
-
 					if(ret!=0 || nResultNum<=0){
 						debug("未识别 ret = %d", ret);
 						ret = -1;
@@ -778,8 +787,8 @@ void RecognitionThread(void *pParam)
 						sprintf(r->plateType, "%s", plateType[result[0].nType]);//车牌类型
 						sprintf(r->plateColor, "%s", plateColor[result[0].nColor]);//车牌颜色
 						sprintf(r->carLogo, "%s", CarLogo[ result[0].nCarLogo] );//车标
-						sprintf(r->carType, "%s", CarLogo[ result[0].nCarType] );//车型
-						sprintf(r->carColor1, "%s", CarLogo[ result[0].nCarColor] );//车颜色
+						sprintf(r->carType, "%s", CarType[ result[0].nCarType] );//车型
+						sprintf(r->carColor1, "%s", CarColor[ result[0].nCarColor] );//车颜色
 						sprintf(r->direct, "%s", TH_Dirction[result[0].nDirection]);//方向
 
 						r->plateRect.left = result[0].rcLocation.left;
@@ -1396,7 +1405,7 @@ void CVLPRClonedDemoDlg::OnNMClickList(NMHDR *pNMHDR, LRESULT *pResult)
 	int nItem = m_list.GetNextSelectedItem(pos);
 	CString temp;
 	if(nItem>=0){
-		temp = m_list.GetItemText(nItem, 6 );
+		temp = m_list.GetItemText(nItem, 8 );
 		Bitmap* imagePlate = KLoadBitmap(temp.GetBuffer(temp.GetLength()));
 		if(imagePlate)
 		{
@@ -1405,7 +1414,7 @@ void CVLPRClonedDemoDlg::OnNMClickList(NMHDR *pNMHDR, LRESULT *pResult)
 			delete imagePlate;
 		}
 
-		temp = m_list.GetItemText(nItem, 7 );
+		temp = m_list.GetItemText(nItem, 9 );
 		Bitmap* imageScreen = KLoadBitmap(temp.GetBuffer(temp.GetLength()));
 		if(imageScreen)
 		{
@@ -1658,9 +1667,10 @@ void CVLPRClonedDemoDlg::OnLbnSelchangeListDirs()
 				int cols =0 ;
 				m_listLpr.SetItemText(nRow, cols++, p->plate);//车牌
 				m_listLpr.SetItemText(nRow, cols++, p->FormatTime());//时间
+				m_listLpr.SetItemText(nRow, cols++, p->plateType);//车牌类型
 				m_listLpr.SetItemText(nRow, cols++, p->carLogo);//车标
-				m_listLpr.SetItemText(nRow, cols++, p->carType);//车型
 				m_listLpr.SetItemText(nRow, cols++, p->carColor1);//车颜色
+				m_listLpr.SetItemText(nRow, cols++, p->carType);//车型
 				m_listLpr.SetItemText(nRow, cols++, p->resultPicture);//图片路径
 				sprintf(temp, "%d", p->id);
 				m_listLpr.SetItemText(nRow, cols++, temp);//id
@@ -1681,7 +1691,7 @@ void CVLPRClonedDemoDlg::OnNMClickListLpr(NMHDR *pNMHDR, LRESULT *pResult)
 	CString temp;
 	if(nItem>=0){
 
-		temp = m_listLpr.GetItemText(nItem, 5);
+		temp = m_listLpr.GetItemText(nItem, 6);
 		Bitmap* imagePlate = KLoadBitmap(temp.GetBuffer(temp.GetLength()));
 		if(imagePlate)
 		{
